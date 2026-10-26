@@ -1,3 +1,7 @@
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
 
 public class DfsBinaryGroupFinder implements BinaryGroupFinder {
@@ -30,7 +34,89 @@ public class DfsBinaryGroupFinder implements BinaryGroupFinder {
     */
     @Override
     public List<Group> findConnectedGroups(int[][] image) {
-        return null;
+
+          validate(image);
+ 
+        int rows = image.length;
+        int cols = image[0].length;
+        boolean[][] visited = new boolean[rows][cols];
+        List<Group> groups = new ArrayList<>();
+ 
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                if (image[row][col] == 1 && !visited[row][col]) {
+                    groups.add(pixelGroup(image, visited, row, col));
+                }
+            }
+        }
+ 
+        groups.sort(Collections.reverseOrder());
+        return groups;
     }
-    
+
+        private Group pixelGroup(int[][] image, boolean[][] visited, int startRow, int startCol) {
+        // up down left right
+        int[] dRow = {-1, 1, 0, 0};
+        int[] dCol = {0, 0, -1, 1};
+ 
+        long sumX = 0;
+        long sumY = 0;
+        int size = 0;
+ 
+        Deque<int[]> stack = new ArrayDeque<>();
+        visited[startRow][startCol] = true;
+        stack.push(new int[] {startRow, startCol});
+ 
+        while (!stack.isEmpty()) {
+            int[] cell = stack.pop();
+            int row = cell[0];
+            int col = cell[1];
+ 
+            size++;
+            sumX += col; // x is the column
+            sumY += row; // y is the row
+            
+             for (int i = 0; i < dRow.length; i++) {
+                int nextRow = row + dRow[i];
+                int nextCol = col + dCol[i];
+                if (nextRow >= 0 && nextRow < image.length && nextCol >= 0 && nextCol < image[0].length
+                && image[nextRow][nextCol] == 1 && !visited[nextRow][nextCol]) {
+                    visited[nextRow][nextCol] = true;
+                    stack.push(new int[] {nextRow, nextCol});
+                }
+            }
+        }
+ 
+        return new Group(size, new Coordinate((int) (sumX / size), (int) (sumY / size)));
+    }
+
+
+    // private method validate
+    // throw image cant be null, row cant be null, image cant be empty
+    //
+    private void validate(int[][] image) {
+        if (image == null) {
+            throw new NullPointerException("image must not be null");
+        }
+        for (int[] row : image) {
+            if (row == null) {
+                throw new NullPointerException("image rows must not be null");
+            }
+        }
+        if (image.length == 0 || image[0].length == 0) {
+            throw new IllegalArgumentException("image must not be empty");
+        }
+        int width = image[0].length;
+        for (int[] row : image) {
+            if (row.length != width) {
+                throw new IllegalArgumentException("image must be rectangular");
+            }
+            for (int pixel : row) {
+                if (pixel != 0 && pixel != 1) {
+                    throw new IllegalArgumentException("image must contain only 0s and 1s");
+                }
+            }
+        }
+    }
 }
+        
