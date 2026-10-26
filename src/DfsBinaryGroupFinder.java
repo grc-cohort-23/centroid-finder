@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class DfsBinaryGroupFinder implements BinaryGroupFinder {
@@ -28,9 +30,76 @@ public class DfsBinaryGroupFinder implements BinaryGroupFinder {
     * @param image a rectangular 2D array containing only 1s and 0s
     * @return the found groups of connected pixels in descending order
     */
+
+    int pixels = 0;
+    int sumX = 0;
+    int sumY = 0;
+
     @Override
     public List<Group> findConnectedGroups(int[][] image) {
-        return null;
+        if (image == null) throw new NullPointerException();
+        if (image.length == 0 || image[0].length == 0) throw new IllegalArgumentException();
+        if(image.length!=1) if (image[0].length > image[1].length || image[1].length > image[0].length) throw new IllegalArgumentException();
+        
+        List<Group> groups = new ArrayList<>();
+
+        pixels = 0;
+        sumX = 0;
+        sumY = 0;
+
+        for (int r = 0; r < image.length; r++) {
+            for (int c = 0; c < image[r].length; c++) {
+                if(image[r][c] > 1 || image[r][c] < 0) throw new IllegalArgumentException();
+                if (image[r][c] != 1 && image[r][c] != 0) throw new NullPointerException();
+            
+                if (image[r][c] == 1) {
+                    dfs(image, r, c);
+                } 
+
+                if (pixels == 0) continue;
+
+                int averageX = sumX / pixels;
+                int averageY = sumY / pixels;
+
+                Group group = new Group(pixels, new Coordinate(averageX, averageY));
+                groups.add(group);
+
+                pixels = 0;
+                sumX = 0;
+                sumY = 0;
+            }
+        }
+        Collections.sort(groups, Collections.reverseOrder());
+        return groups;
+    }
+
+    private void dfs(int[][] image, int row, int column) {
+        int[][] moves = new int[][] {
+            {0, -1}, // UP
+            {0, 1}, // DOWN
+            {-1, 0}, // LEFT
+            {1, 0} // RIGHT
+        };
+
+        if (row < 0 || row >= image.length ||
+            column < 0 || column >= image[row].length ||
+            image[row][column] == 0 || pixels == (image.length * image[0].length)) {
+            return;
+        }
+
+        pixels++;
+        sumX += column;
+        sumY += row;
+
+        image[row][column] = 0;
+
+        for (int[] move : moves) {
+            int nextRow = row + move[0];
+            int nextColumn = column + move[1];
+
+            dfs(image, nextRow, nextColumn);
+            
+        }
     }
     
 }
