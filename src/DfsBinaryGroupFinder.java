@@ -1,4 +1,9 @@
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.Stack;
 
 public class DfsBinaryGroupFinder implements BinaryGroupFinder {
    /**
@@ -30,7 +35,80 @@ public class DfsBinaryGroupFinder implements BinaryGroupFinder {
     */
     @Override
     public List<Group> findConnectedGroups(int[][] image) {
-        return null;
+        imageChecker(image);
+
+        Set<Coordinate> visited = new HashSet<>();
+        List<Group> list = new ArrayList<>();
+        
+        for(int y = 0; y < image.length; y++){
+            for(int x = 0; x < image[y].length; x++){
+                if( image[y][x] == 1 && 
+                    !visited.contains(new Coordinate(x, y))
+                ){
+                    list.add(groupBuilder(new Coordinate(x, y),image,visited));
+                }
+            }
+        }
+
+        list.sort(Comparator.reverseOrder());
+        return list;
+    }
+        
+    private Group groupBuilder(Coordinate start,int[][] image, Set<Coordinate> visited){
+        
+        Stack<Coordinate> stack = new Stack<>();
+        stack.push(start);
+
+        int groupSize = 0;
+        int groupAverageX = 0;
+        int groupAverageY = 0;
+
+        int[][] directions = {{0,1},{0,-1},{1,0},{-1,0}};
+        
+        while(!stack.isEmpty()){
+            Coordinate current = stack.pop();
+            if(visited.contains(current))continue;
+            visited.add(current);
+
+            groupSize++;
+            groupAverageX += current.x();
+            groupAverageY += current.y();
+
+            for(int[] direction : directions){
+                Coordinate neighbor = new Coordinate(current.x()+direction[1],current.y()+direction[0]);
+                if( neighbor.x() >= 0 && 
+                    neighbor.x() < image[0].length &&
+                    neighbor.y() >= 0 &&
+                    neighbor.y() < image.length &&
+                    image[neighbor.y()][neighbor.x()] != 0
+                ){
+                    stack.push(neighbor);
+                }
+            }
+        }
+
+        groupAverageX /= groupSize;
+        groupAverageY /= groupSize;
+
+        return new Group(groupSize,new Coordinate(groupAverageX,groupAverageY));
+
+            
     }
     
+    private void imageChecker(int[][] image){
+        if(image == null) throw new NullPointerException();
+        if(image.length == 0) throw new IllegalArgumentException();
+
+        int width = image[0].length;
+        if(width == 0) throw new IllegalArgumentException();
+
+        for(int y = 0; y < image.length; y++){
+            if(image[y] == null) throw new NullPointerException();
+            if(image[y].length != width) throw new IllegalArgumentException();
+            
+            for(int x = 0; x < image[y].length; x++){
+                if(image[y][x] != 0 && image[y][x] != 1) throw new IllegalArgumentException();
+            }
+        }
+    }
 }
