@@ -45,7 +45,23 @@ public class DistanceImageBinarizer implements ImageBinarizer {
      */
     @Override
     public int[][] toBinaryArray(BufferedImage image) {
-        return null;
+        int width = image.getWidth();
+        int height = image.getHeight();
+        int[][] binaryArray = new int[height][width];
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int pixelColor = image.getRGB(x, y) & 0xFFFFFF;
+                double distance = distanceFinder.distance(pixelColor, targetColor);
+
+                if (distance < threshold) {
+                    binaryArray[y][x] = 1;
+                } else {
+                    binaryArray[y][x] = 0;
+                }
+            }
+        }
+        return binaryArray;
     }
 
     /**
@@ -58,6 +74,19 @@ public class DistanceImageBinarizer implements ImageBinarizer {
      */
     @Override
     public BufferedImage toBufferedImage(int[][] image) {
-        return null;
+        int height = image.length;
+        int width = image[0].length;
+        BufferedImage bufferedImage =new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (image[y][x] == 0) {
+                    bufferedImage.setRGB(x, y, 0x000000);
+                } else {
+                    bufferedImage.setRGB(x, y, 0xFFFFFF);
+                }
+            }
+        }
+        return bufferedImage;
     }
 }

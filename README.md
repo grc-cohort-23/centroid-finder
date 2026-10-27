@@ -2,7 +2,7 @@
 
 ## *DO THIS FIRST* Wave 0: AI Rules 
 AI is *NOT ALLOWED* for generating implementations of the classes.
-AI is allowed for helping you make test cases.
+AI is allowed for helping you make test cases..
 
 Don't have it just create the tests mindlessly for you though! Make sure you're actively involved in making the tests.
 
