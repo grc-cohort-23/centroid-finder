@@ -11,7 +11,8 @@ EVERY COMMIT THAT USES AI MUST START WITH THE COMMIT MESSAGE "AI Used" AND IT MU
 
 For this wave, please have each partner make a commit below with their username acknowledging that they understand the rules, according to the following format:
 
-"I, YOUR_GITHUB_USERNAME, understand that AI is ONLY to be used for tests, and that every commit that I use AI for must start with 'AI Used'"
+"I, akufurst, understand that AI is ONLY to be used for tests, and that every commit that I use AI for must start with 'AI Used'"
+"I, JamHudson, understand that AI is ONLY to be used for tests, and that every commit that I use AI for must start with 'AI Used'"
 
 ## Wave 1: Understand
 Read through ImageSummaryApp in detail with your partner. Understand what each part does. This will involve looking through and reading ALL of the other classes records and interfaces. This will take a long time, but it is worth it! Do not skimp on this part, you will regret it! Also look at the sampleInput and sampleOutput folders to understand what comes in and what goes out.
@@ -63,4 +64,3 @@ Once you have confirmed it is working, clean up your code, make sure it's commit
 
 ## Optional Wave 7: Enhancements?
 If you want to, you can make a new branch to start experimenting. See if you can come up with a better color distance method (hint: look up perceptual color spaces). See if you can make your code more efficient or mor suited to spotting salamanders! Experiment with other test files. PLEASE MAKE SURE THIS IS IN A SEPARATE BRANCH FROM YOUR SUBMISSION.
-

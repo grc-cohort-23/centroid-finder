@@ -37,6 +37,11 @@ public class BinarizingImageGroupFinder implements ImageGroupFinder {
      */
     @Override
     public List<Group> findConnectedGroups(BufferedImage image) {
-        return null;
+        // Convert the BufferedImage into a binary array
+        int[][] binaryArray = binarizer.toBinaryArray(image);
+        // Locate the connected groups from the binary array
+        List<Group> connectedGroups = groupFinder.findConnectedGroups(binaryArray);
+        
+        return connectedGroups;
     }
 }
