@@ -1,5 +1,8 @@
 import java.awt.image.BufferedImage;
-
+import java.util.Set;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ArrayList;
 /**
  * An implementation of the ImageBinarizer interface that uses color distance
  * to determine whether each pixel should be black or white in the binary image.
@@ -45,7 +48,28 @@ public class DistanceImageBinarizer implements ImageBinarizer {
      */
     @Override
     public int[][] toBinaryArray(BufferedImage image) {
-        return null;
+        // columns
+        int width = image.getWidth();
+        // rows
+        int height = image.getHeight();
+        // Array[rows][columns]
+        int[][] binary =  new int[height][width];
+
+        // loop thru rows and columns
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                // Get the pixel color, then drop alpha bits
+                int pixColor = image.getRGB(x, y) & 0xFFFFFF;
+                // Distance between pixColor from target
+                double dis = distanceFinder.distance(pixColor, targetColor);
+
+                if (dis < threshold) {
+                    // close to the target color, so white
+                    binary[y][x] = 1;
+                }
+            }
+        }
+        return binary;
     }
 
     /**
@@ -58,6 +82,26 @@ public class DistanceImageBinarizer implements ImageBinarizer {
      */
     @Override
     public BufferedImage toBufferedImage(int[][] image) {
-        return null;
+        // variables for readability and speed
+        int height = image.length, width = image[0].length, white = 0xFFFFFF;
+        // visited pixels
+        Set<Coordinate> visited = new HashSet<>();
+        // finder used to explore 2D image array
+        DfsBinaryGroupFinder finder = new DfsBinaryGroupFinder();
+        // output image
+        BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+
+        // essentially the loop for findConnectedGroups, just made for image reconstruction
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (image[y][x] == 1 && !visited.contains(new Coordinate(x, y))) {
+                    for (Coordinate pixel : finder.explore(image, new Coordinate(x, y), visited)) {
+                        output.setRGB(pixel.x(), pixel.y(), white);
+                    }
+                }
+            }
+        }
+
+        return output;
     }
 }
