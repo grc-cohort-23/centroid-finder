@@ -23,7 +23,9 @@
 hs_err_pid*
 replay_pid*
 
+# Maven build output
 target/
 
-binarized.png
-groups.csv
+#App output written to the project root
+/binarized.png
+/groups.csv
