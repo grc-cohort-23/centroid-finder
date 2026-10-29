@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 
 public interface BinaryGroupFinder {
@@ -31,5 +32,5 @@ public interface BinaryGroupFinder {
     * @param image a rectangular 2D array containing only 1s and 0s
     * @return the found groups of connected pixels in descending order
     */
-   public List<Group> findConnectedGroups(int[][] image);
+   public List<Group> findConnectedGroups(int[][] image); 
 }

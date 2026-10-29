@@ -17,4 +17,5 @@ public interface ColorDistanceFinder {
      * @return the computed distance between the two colors
      */
     public double distance(int colorA, int colorB);
+    
 }

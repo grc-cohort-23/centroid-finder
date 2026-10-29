@@ -3,7 +3,8 @@ public class EuclideanColorDistance implements ColorDistanceFinder {
      * Returns the euclidean color distance between two hex RGB colors.
      * 
      * Each color is represented as a 24-bit integer in the form 0xRRGGBB, where
-     * RR is the red component, GG is the green component, and BB is the blue component,
+     * RR is the red component, GG is the green component, and BB is the blue
+     * component,
      * each ranging from 0 to 255.
      * 
      * The Euclidean color distance is calculated by treating each color as a point
@@ -19,6 +20,18 @@ public class EuclideanColorDistance implements ColorDistanceFinder {
      */
     @Override
     public double distance(int colorA, int colorB) {
-        return 0;
+        int redA = (colorA >> 16) & 0xFF;
+        int greenA = (colorA >> 8) & 0xFF;
+        int blueA = colorA & 0xFF;
+
+        int redB = (colorB >> 16) & 0xFF;
+        int greenB = (colorB >> 8) & 0xFF;
+        int blueB = colorB & 0xFF;
+
+        int redDiff = redA - redB;
+        int greenDiff = greenA - greenB;
+        int blueDiff = blueA - blueB;
+
+        return Math.sqrt((redDiff * redDiff) + (greenDiff * greenDiff) + (blueDiff * blueDiff));
     }
 }
