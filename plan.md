@@ -3,9 +3,12 @@
 Build a command line tool that reads an MP4, runs every frame through 
 centroid-finder logic, and writes a CSV tracking the largest group's centroid over time.
 
+## Architechture
 ![Architecture diagram](diagram_centroid.JPG)
 
-Code: java -jar videoprocessor.jar inputPath outputCsv targetColor threshold
+```
+ java -jar videoprocessor.jar inputPath outputCsv targetColor threshold
+ ```
 
 Example output (`seconds,x,y`):
 
@@ -55,15 +58,16 @@ AI Used to help create a nice table, asking AI how to make a table and what are 
 | `VideoProcessorApp` | `main`. Parses args, wires objects together, prints errors. No logic of its own. |
 | `ArgumentParser` | Turns `String[] args` into a `VideoProcessorArgs`; throws `IllegalArgumentException` with a clear message on bad input. |
 | `VideoProcessorArgs` (record) | `inputPath`, `outputCsv`, `targetColor` (int `0xRRGGBB`), `threshold` (int). |
-| `FrameSource` (interface, `AutoCloseable`) | `Optional<TimedFrame> nextFrame()` — hands out frames one at a time. |
+| `FrameSource` (interface, `Closeable`) | `Optional<TimedFrame> nextFrame()` — hands out frames one at a time. |
 | `JavaCvFrameSource` | The only class that knows about JavaCV. Wraps `FFmpegFrameGrabber` and `Java2DFrameConverter`. |
 | `TimedFrame` (record) | `double seconds`, `BufferedImage image`. |
 | `CentroidTracker` | Given a `TimedFrame`, asks the `ImageGroupFinder` for groups and returns a `TrackingResult` with the largest group's centroid, or `(-1,-1)`. |
 | `TrackingResult` (record) | `double seconds`, `Coordinate centroid`; has `toCsvRow()`. |
-| `ResultWriter` (interface, `AutoCloseable`) | `void write(TrackingResult r)`. |
+| `ResultWriter` (interface, `Closeable`) | `void write(TrackingResult r)`. |
 | `CsvResultWriter` | Writes `seconds,x,y` lines to a `Writer` (a file in real use, a `StringWriter` in tests). |
 | `VideoProcessor` | The loop: pull frame → track → write, until the source is empty. Depends only on interfaces. |
 
+- Changed FrameSource and ResultWriter to Closeable instead of AutoCloseable
 
 ## Validation plan 
 
