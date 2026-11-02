@@ -23,9 +23,7 @@ public class ArgumentParser {
         if (!Files.isRegularFile(Path.of(inputPath))) {
             throw new IllegalArgumentException("Input video not found: " + inputPath);
         }
-
-    //     return new VideoProcessorArgs(inputPath, outputCsv, targetColor, threshold);
-    // }
+         return new VideoProcessorArgs(inputPath, outputCsv, targetColor, threshold);
     }
 
     private int parseColor(String text) {
@@ -35,6 +33,21 @@ public class ArgumentParser {
             throw new IllegalArgumentException("Invalid target color: " + text);
         }
         return Integer.parseInt(hex, 16); 
+    }
+
+    // turn "164" into the number 164 (whole num, 0 or bigger)
+    private int parseThreshold(String text) {
+        int threshold;
+        try {
+            threshold = Integer.parseInt(text);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid threshold: " + text);
+        }
+
+        if (threshold < 0) {
+            throw new IllegalArgumentException("Threshold must not be negative: " + text);
+        }
+        return threshold;
     }
 
 

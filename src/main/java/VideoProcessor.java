@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * The main loop: take each frame from a FrameSource, track it, write the result.
@@ -21,12 +22,18 @@ public class VideoProcessor {
     public int process(FrameSource source, ResultWriter writer) throws IOException {
         int frameCount = 0;
 
-        // TODO KC: Loop until source.nextFrame() returns an empty Optional.
-        //         For each frame: track it, write the result, add 1 to frameCount.
-        //   while (next.isPresent()) { ... next = source.nextFrame(); }
-        // Checked by: VideoProcessorTest
-        if (true) throw new UnsupportedOperationException("TODO 8"); // delete this line when done
+         // ask for the first frame
+        Optional<TimedFrame> next = source.nextFrame();
 
-return ? 
+        // keep going until the source gives back an empty Optional (end of video)
+        while (next.isPresent()) {
+            TrackingResult result = tracker.track(next.get());
+            writer.write(result);
+            frameCount++;
+
+            next = source.nextFrame();
+        }
+
+        return frameCount;
     }
 }
