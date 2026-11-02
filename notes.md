@@ -72,3 +72,23 @@ This changes the pixel at (10, 20) to red.
 mkdir -p src/main/java src/test/java
 git mv src/*Test.java src/test/java/
 git mv src/*.java src/main/java/
+
+## VideoProssorArgs (record)
+- hold 4 command-line arguments after they been check (inputPath, outputCsv, targetColor, threshold)
+- argumentParser create it from raw String[] args
+- let the rest of the code use clear names (args.threshold()) instead of args[3]
+- the color will be stored as a number (OxFFFetc) not text
+- 
+## TimeFrame (record)
+- one frame of the video + the time it appears: seconds and image
+- FrameSource hands these out
+- Where it keep the time n pictures together so no mixed up
+- image is BufferedImage.
+
+## TrackingResult (record)
+- The answer for one frame: the time, plus the centroid of the largest group.
+
+## FrameSource (Interface)
+- Anything gives out video frames one at a time
+- empty Optional? mean video is finished
+- Mentioned AutoCloseble (searching up b4 do anything)
