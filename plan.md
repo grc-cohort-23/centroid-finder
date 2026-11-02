@@ -64,7 +64,21 @@ We will reuse the same classes ImageSummaryApp uses:
 - FrameReader is an interface: like we did with the FakeDistanceFinder, we can give it a fake FrameReader that gives back images we made ourselves, to test that the code is working. If we for some reason decided that JavaCV needed to be switched to JCodec we would only need to write a new JCodecFrameReader, and the rest of our code wouldn't change.
 
 ## Architecture diagram
-<!-- Add your picture here (photo of a drawing, draw.io, excalidraw, etc.) -->
+VideoSummaryApp (main + runs the loop)
+   │
+   ├── ArgumentParser          reads & checks the 4 arguments
+   │
+   ├── FrameReader (interface) next frame → BufferedImage, timestamp → double, close → void
+   │       ├── JavaCVFrameReader   the real one, uses JavaCV
+   │       └── (fake one in tests)
+   │
+   ├── ImageCentroidTracker    BufferedImage → Coordinate (biggest group, or -1,-1)
+   │       └── uses existing: BinarizingImageGroupFinder
+   │                            ├── DistanceImageBinarizer → EuclideanColorDistance
+   │                            └── DfsBinaryGroupFinder
+   │
+   └── CSVOutputWriter         writes "seconds,x,y" rows
+
 
 ## Testing plan
 <!-- How will you test each class? Which ones can use fakes? -->
