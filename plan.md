@@ -64,6 +64,7 @@ We will reuse the same classes ImageSummaryApp uses:
 - FrameReader is an interface: like we did with the FakeDistanceFinder, we can give it a fake FrameReader that gives back images we made ourselves, to test that the code is working. If we for some reason decided that JavaCV needed to be switched to JCodec we would only need to write a new JCodecFrameReader, and the rest of our code wouldn't change.
 
 ## Architecture diagram
+```
 VideoSummaryApp (main + runs the loop)
    │
    ├── ArgumentParser          reads & checks the 4 arguments
@@ -78,7 +79,7 @@ VideoSummaryApp (main + runs the loop)
    │                            └── DfsBinaryGroupFinder
    │
    └── CSVOutputWriter         writes "seconds,x,y" rows
-
+```
 
 ## Testing plan
 <!-- How will you test each class? Which ones can use fakes? -->
