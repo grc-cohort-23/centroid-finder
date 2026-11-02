@@ -24,3 +24,9 @@ hs_err_pid*
 replay_pid*
 # Maven build output
 target/
+
+# Videos (salamander videos are too big and must not be committed)
+*.mp4
+*.mov
+*.avi
+*.mkv
