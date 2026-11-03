@@ -1,5 +1,6 @@
 public class VideoProcessorApp {
-      private static final double STEP_SECONDS = 1.0;
+    private static final double STEP_SECONDS = 1.0;
+
     public static void main(String[] args) {
         VideoProcessorArgs parsed;
         try {
@@ -17,7 +18,7 @@ public class VideoProcessorApp {
         VideoProcessor processor = new VideoProcessor(new CentroidTracker(finder));
 
         try (FrameSource source = new JavaCvFrameSource(parsed.inputPath(), STEP_SECONDS);
-             ResultWriter writer = new ResultWriter(parsed.outputCsv())) {
+             ResultWriter writer = new CsvResultWriter(parsed.outputCsv())) {
             int count = processor.process(source, writer);
             System.out.println("Processed " + count + " frames -> " + parsed.outputCsv());
         } catch (Exception e) {
