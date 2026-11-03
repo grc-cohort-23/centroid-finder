@@ -21,6 +21,12 @@
       <version>5.10.0</version>
       <scope>test</scope>
     </dependency>
+    <!--other JCodec-->
+    <dependency>
+      <groupId>org.jcodec</groupId>
+      <artifactId>jcodec</artifactId>
+      <version>0.2.5</version>
+    </dependency>
     <!-- JCodec -->
     <dependency>
       <groupId>org.jcodec</groupId>
