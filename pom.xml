@@ -14,11 +14,13 @@
   </properties>
 
   <dependencies>
-    <!-- PDF output for charts -->
+   <!-- Source: https://mvnrepository.com/artifact/com.orsonpdf/orsonpdf -->
     <dependency>
       <groupId>com.orsonpdf</groupId>
       <artifactId>orsonpdf</artifactId>
       <version>1.9.1</version>
+      <scope>compile</scope>
+
     </dependency>
 
     <!-- JFreeChart for plotting -->
@@ -51,7 +53,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.5.3</version>
       </plugin>
-
+   <!-- Exec: main class comes from the exec.mainClass property above -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
