@@ -55,5 +55,39 @@ public class ArgumentParserTest {
             () -> parser.parse(new String[] {"a.mp4", "out.csv", "FFA200"}));
     }
 
+     @Test
+    public void testTooManyArgs() {
+        assertThrows(IllegalArgumentException.class,
+            () -> parser.parse(new String[] {"a.mp4", "out.csv", "FFA200", "10", "extra"}));
+    }
+
     @Test
-    public
+    public void testMissingInputFile() {
+        assertThrows(IllegalArgumentException.class,
+            () -> parser.parse(new String[] {"does-not-exist.mp4", "out.csv", "FFA200", "10"}));
+    }
+
+    @Test
+    public void testBadColorNotHex() throws IOException {
+        assertThrows(IllegalArgumentException.class,
+            () -> parser.parse(new String[] {existingFile(), "out.csv", "GGGGGG", "10"}));
+    }
+
+    @Test
+    public void testBadColorWrongLength() throws IOException {
+        assertThrows(IllegalArgumentException.class,
+            () -> parser.parse(new String[] {existingFile(), "out.csv", "FFA2", "10"}));
+    }
+
+    @Test
+    public void testThresholdNotANumber() throws IOException {
+        assertThrows(IllegalArgumentException.class,
+            () -> parser.parse(new String[] {existingFile(), "out.csv", "FFA200", "abc"}));
+    }
+
+    @Test
+    public void testNegativeThreshold() throws IOException {
+        assertThrows(IllegalArgumentException.class,
+            () -> parser.parse(new String[] {existingFile(), "out.csv", "FFA200", "-5"}));
+    }
+}
