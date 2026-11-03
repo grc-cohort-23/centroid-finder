@@ -25,10 +25,16 @@ Load up CentroidFinder as is.
 Step 2:
 Open JCodec example code and documentation,
 iterate over a list of video frames as images.
-Every image run our current CentroidFinder
+Every image runs our current CentroidFinder
 to scrape binarized.png and groups.csv files.
 
 Step 3:
 Put it together, through folders or file identifiers
 make an easily iterable output order that makes our
 generated data accessible.
+
+Step 4:
+Create tests to validate our program.
+
+Step 5:
+Submit!
