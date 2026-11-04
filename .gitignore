@@ -29,3 +29,12 @@ target/
 #App output written to the project root
 /binarized.png
 /groups.csv
+/output.csv
+
+# Validation videos (e.g. the salamander video) - do not commit real video footage.
+# sampleInput/ball.mp4 is the one exception, tracked intentionally as a small test fixture.
+*.mp4
+*.mov
+*.avi
+*.mkv
+!/sampleInput/ball.mp4
