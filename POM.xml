@@ -1,0 +1,84 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.github.tonymythical</groupId>
+  <artifactId>centroidFinder</artifactId>
+  <version>1.0</version>
+
+  <properties>
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
+  </properties>
+
+
+  <dependencies>    
+    <!-- JUnit Jupiter -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>5.10.0</version>
+      <scope>test</scope>
+    </dependency>
+    <!--other JCodec-->
+    <dependency>
+      <groupId>org.jcodec</groupId>
+      <artifactId>jcodec</artifactId>
+      <version>0.2.5</version>
+    </dependency>
+    <!-- JCodec -->
+    <dependency>
+      <groupId>org.jcodec</groupId>
+      <artifactId>jcodec-javase</artifactId>
+      <version>0.2.5</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+    <!-- Assembly -->
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>3.6.0</version>
+          <configuration>
+              <descriptorRefs>
+                  <descriptorRef>jar-with-dependencies</descriptorRef>
+              </descriptorRefs>
+              <archive>
+                  <manifest>
+                      <mainClass>io.github.tonymythical.centroidFinder.VideoProcessorApp</mainClass>
+                  </manifest>
+              </archive>
+              <finalName>videoprocessor</finalName>
+              <appendAssemblyId>false</appendAssemblyId>
+          </configuration>
+          <executions>
+              <execution>
+                  <id>make-assembly</id>
+                  <phase>package</phase>
+                  <goals>
+                      <goal>single</goal>
+                  </goals>
+              </execution>
+          </executions>
+      </plugin>
+      <!-- Surefire -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.5.3</version>
+      </plugin>
+      <!-- Exec -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.1.0</version>
+        <configuration>
+          <mainClass>ImageSummaryApp</mainClass>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

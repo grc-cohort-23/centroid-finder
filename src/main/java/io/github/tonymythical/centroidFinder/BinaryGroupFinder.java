@@ -1,6 +1,8 @@
+package io.github.tonymythical.centroidFinder;
 import java.util.List;
 
-public class DfsBinaryGroupFinder implements BinaryGroupFinder {
+
+public interface BinaryGroupFinder {
    /**
     * Finds connected pixel groups of 1s in an integer array representing a binary image.
     * 
@@ -23,14 +25,13 @@ public class DfsBinaryGroupFinder implements BinaryGroupFinder {
     * coordinates of the pixels in the group divided by the number of pixels in that group.
     * The division should be done as INTEGER DIVISION.
     *
-    * The groups are sorted in DESCENDING order according to Group's compareTo method.
+    * The groups are sorted in DESCENDING order according to Group's compareTo method
+    * (size first, then x, then y). That is, the largest group will be first, the 
+    * smallest group will be last, and ties will be broken first by descending 
+    * y value, then descending x value.
     * 
     * @param image a rectangular 2D array containing only 1s and 0s
     * @return the found groups of connected pixels in descending order
     */
-    @Override
-    public List<Group> findConnectedGroups(int[][] image) {
-        return null;
-    }
-    
+   public List<Group> findConnectedGroups(int[][] image);
 }
