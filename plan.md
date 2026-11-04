@@ -86,9 +86,27 @@ AI Used to help create a nice table, asking AI how to make a table and what are 
 - Count the `-1,-1` rows; lots of them means the threshold is too tight.
 
 
+## Results
 
-TODO
-**Results** 
-- Color chosen:
-- Threshold chosen:
-- What we observed / what we changed:
+note: We sample one frame per second (STEP_SECONDS = 1.0); it’s fast and still follows the salamander, which moves slowly
+
+**Video:** ensantina.mp4, 816×720, ~24 fps, ~8 minutes
+- Color chosen: 5C0005 (Digital Color Meter w sRGB) use on mander in start, middle and end then avg them out.
+
+**Threshold chosen: 80**
+we compared between 25, 35, 50 80 and 90 -> we picked 80 because less of the background turns white.
+- 25 n 35 was bad, dark spot/container at the top was bigger than mander.
+- 50 barely work
+
+**Full run:** `java -jar target/videoprocessor.jar sampleInput/ensantina.mp4 output.csv 5C0005 80`
+- 479 rows (one per second), no `-1,-1` rows.
+
+**What went wrong:** When the salamander is in the bottom-left corner and partly
+out of frame, the dark strip along the top of the container becomes a bigger
+group than the salamander, so the tracker jumps to it. (1:03 and 1:16)
+
+**Check**
+
+- We compared the CSV to the video by hand. Picked three random times (0:30, 3:20, and 6:40), paused the video at each one, and looked at where the salamander was. In all 3, the position in the CSV matched where the salamander really was.
+- 29 out of 479 rows that's wrong, it said the mander stuck at the very top of the picture or far right side.
+- Conclusion why its wrong: the mander actually was at the bottom left but its body was out of frame mostly or enough that the dark strip/shadows? at the top actually bigger than mander in that moment -> the program following that instead of "half" of the mander.
