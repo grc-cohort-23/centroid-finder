@@ -30,8 +30,12 @@ public class FfmpegVideoFrameGrabber implements VideoFrameGrabber, AutoCloseable
     public FfmpegVideoFrameGrabber(String videoPath) throws IOException {
         this.grabber = new FFmpegFrameGrabber(videoPath);
         this.converter = new Java2DFrameConverter();
-        this.grabber.start();
-        this.lookaheadFrame = grabber.grabImage();
+        try {
+            this.grabber.start();
+            this.lookaheadFrame = grabber.grabImage();
+        } catch (Exception e) {
+            throw new IOException("Failed to open video: " + videoPath, e);
+        }
     }
 
     /**
@@ -49,6 +53,7 @@ public class FfmpegVideoFrameGrabber implements VideoFrameGrabber, AutoCloseable
      *
      * @return a FrameData containing the next frame's image and its timestamp
      * @throws NoSuchElementException if there is no next frame available
+     * @throws RuntimeException if the underlying grabber fails to read the following frame
      */
     @Override
     public FrameData nextFrame() {
@@ -60,7 +65,11 @@ public class FfmpegVideoFrameGrabber implements VideoFrameGrabber, AutoCloseable
         // FFmpeg reports timestamps in microseconds, so convert to seconds.
         double timestamp = lookaheadFrame.timestamp / 1_000_000.0;
 
-        lookaheadFrame = grabber.grabImage();
+        try {
+            lookaheadFrame = grabber.grabImage();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to read next frame", e);
+        }
 
         return new FrameData(image, timestamp);
     }
