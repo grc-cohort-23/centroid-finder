@@ -77,3 +77,74 @@ Converted from Google Doc: https://docs.google.com/document/d/1t6ATUeCNYo4OVpAEK
 ---
 
 ## Architectural Diagram
+```mermaid
+flowchart TD
+  CLI["java -jar videoprocessor.jar<br/>inputPath outputCsv targetColor threshold"]
+
+  subgraph NEW["NEW CODE (Part 2)"]
+    direction TB
+    APP["VideoSummaryApp (main)<br/>parses 4 args, SAMPLE_INTERVAL_SECONDS = 0.5<br/>wires everything together, delegates"]
+    VFG["VideoFrameGrabber (interface)<br/>nextFrame(): FrameData<br/>hasNext(): boolean"]
+    FFG["FfmpegVideoFrameGrabber<br/>JavaCV FFmpeg + Java2DFrameConverter<br/>timestamps in seconds"]
+    FD["FrameData (record)<br/>BufferedImage frame, double timestamp"]
+    VGF["VideoGroupFinder (interface)<br/>findCentroids(): List of VideoResult"]
+    SVG["SamplingVideoGroupFinder<br/>takes grabber, ImageGroupFinder, intervalSeconds<br/>processes frame when timestamp >= target"]
+    VR["VideoResult (record)<br/>double timestamp, Coordinate centroid<br/>toCsvRow()  (-1,-1 if no group)"]
+    VRW["VideoResultWriter<br/>takes output path<br/>writeResults(List of VideoResult) via PrintWriter"]
+  end
+
+  subgraph OLD["EXISTING CODE (reuse, do not change)"]
+    direction TB
+    IGF["ImageGroupFinder (interface)"]
+    BIGF["BinarizingImageGroupFinder"]
+    IB["ImageBinarizer (interface)"]
+    DIB["DistanceImageBinarizer"]
+    CDF["ColorDistanceFinder (interface)"]
+    ECD["EuclideanColorDistance"]
+    BGF["BinaryGroupFinder (interface)"]
+    DFS["DfsBinaryGroupFinder"]
+    GRP["Group (record)"]
+    COORD["Coordinate (record)"]
+  end
+
+  VID[("video.mp4<br/>NOT committed")]
+  OUT[("output.csv")]
+
+  CLI --> APP
+  APP -->|creates| FFG
+  APP -->|"builds (target color, threshold)"| BIGF
+  APP -->|"creates, passes interval"| SVG
+  APP -->|"creates (output path)"| VRW
+  APP -->|"1. findCentroids()"| VGF
+  APP -.->|"2. writeResults(results)"| VRW
+
+  FFG -.implements.-> VFG
+  FFG -->|reads| VID
+  FFG -->|returns| FD
+  SVG -.implements.-> VGF
+  SVG -->|"loops hasNext() / nextFrame()"| VFG
+  SVG -->|"passes frame to"| IGF
+  SVG -->|"takes first Group, returns List of"| VR
+  VR --> COORD
+  VRW -->|"calls toCsvRow()"| VR
+  VRW --> OUT
+
+  BIGF -.implements.-> IGF
+  BIGF --> IB
+  BIGF --> BGF
+  DIB -.implements.-> IB
+  DIB --> CDF
+  ECD -.implements.-> CDF
+  DFS -.implements.-> BGF
+  DFS --> GRP
+  GRP --> COORD
+
+  classDef new fill:#d7f0e0,stroke:#2e7d4f,color:#111;
+  classDef old fill:#e8e8ee,stroke:#666,color:#111;
+  classDef io fill:#fff3d6,stroke:#b8860b,color:#111;
+  class APP,VFG,FFG,FD,VGF,SVG,VR,VRW new;
+  class IGF,BIGF,IB,DIB,CDF,ECD,BGF,DFS,GRP,COORD old;
+  class VID,OUT,CLI io;
+```
+
+**Legend:** green = new code for Part 2, grey = existing Part 1 classes we reuse unchanged, orange = inputs and outputs. Solid arrows mean "uses" or "creates", and dotted arrows mean "implements".
