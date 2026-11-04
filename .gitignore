@@ -24,3 +24,9 @@ hs_err_pid*
 replay_pid*
 
 target/
+
+# Videos
+*.mp4
+*.mov
+*.avi
+*.mkv
