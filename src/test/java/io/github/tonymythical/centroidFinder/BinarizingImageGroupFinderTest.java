@@ -1,3 +1,5 @@
+package io.github.tonymythical.centroidFinder;
+
 import static org.junit.jupiter.api.Assertions.*;
  import java.awt.image.BufferedImage;
 import java.util.List;

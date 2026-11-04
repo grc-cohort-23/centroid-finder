@@ -37,6 +37,33 @@
 
   <build>
     <plugins>
+    <!-- Assembly -->
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>3.6.0</version>
+          <configuration>
+              <descriptorRefs>
+                  <descriptorRef>jar-with-dependencies</descriptorRef>
+              </descriptorRefs>
+              <archive>
+                  <manifest>
+                      <mainClass>io.github.tonymythical.centroidFinder.VideoProcessorApp</mainClass>
+                  </manifest>
+              </archive>
+              <finalName>videoprocessor</finalName>
+              <appendAssemblyId>false</appendAssemblyId>
+          </configuration>
+          <executions>
+              <execution>
+                  <id>make-assembly</id>
+                  <phase>package</phase>
+                  <goals>
+                      <goal>single</goal>
+                  </goals>
+              </execution>
+          </executions>
+      </plugin>
       <!-- Surefire -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

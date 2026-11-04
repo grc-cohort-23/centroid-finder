@@ -1,4 +1,6 @@
+package io.github.tonymythical.centroidFinder;
 import java.util.List;
+
 
 public interface BinaryGroupFinder {
    /**

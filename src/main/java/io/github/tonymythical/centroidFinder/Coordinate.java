@@ -1,3 +1,5 @@
+package io.github.tonymythical.centroidFinder;
+
 /**
  * Represents a location in an image or array
  * 

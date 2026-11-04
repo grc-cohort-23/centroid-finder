@@ -1,3 +1,5 @@
+package io.github.tonymythical.centroidFinder;
+
 import java.awt.image.BufferedImage;
 
 /**

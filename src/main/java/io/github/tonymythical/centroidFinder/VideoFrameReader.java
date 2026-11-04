@@ -1,4 +1,4 @@
-package main.java.io.github.tonymythical.centroidFinder;
+package io.github.tonymythical.centroidFinder;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;

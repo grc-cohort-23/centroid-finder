@@ -1,3 +1,5 @@
+package io.github.tonymythical.centroidFinder;
+
 import org.jcodec.api.FrameGrab;
 import org.jcodec.common.model.Picture;
 import org.jcodec.scale.AWTUtil;
