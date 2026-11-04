@@ -148,3 +148,15 @@ flowchart TD
 ```
 
 **Legend:** green = new code for Part 2, grey = existing Part 1 classes we reuse unchanged, orange = inputs and outputs. Solid arrows mean "uses" or "creates", and dotted arrows mean "implements".
+
+---
+
+## Wave 4: Validation
+
+We validated against a real salamander video (`ensantina.mp4`, ~8 minutes, not committed per `.gitignore`).
+
+**Picking a color and threshold:** We extracted a handful of frames from the video (every ~1.25s) and sampled pixel colors directly off the salamander's body versus the pink background paper. The salamander's dark body color was consistently around `570D0E`. We then ran our own `DistanceImageBinarizer` + `BinarizingImageGroupFinder` pipeline against those sample frames at a range of thresholds (40-160) and counted matching pixels at each one, then visually checked the binarized output. A threshold of `35` with target color `570D0E` cleanly isolated the salamander's body as the largest connected group in every sample frame we checked, with the salamander's group consistently 3x+ larger than the next-largest false-positive group (a dark rim/shadow along the top edge of the enclosure, which is a similar dark color).
+
+**Running the full video:** `java -jar videoprocessor.jar ensantina.mp4 output.csv 570D0E 35` ran against the entire video and produced one row every ~0.5s as expected. The centroid trajectory is smooth and continuous for most of the video, tracking the salamander crawling across the enclosure.
+
+**Known limitation found during validation:** for a few stretches of the video (particularly when the salamander sits still for an extended period), the dark rim along the top of the enclosure occasionally becomes the largest connected group instead of the salamander, since it's a similar dark color and the pipeline always takes the single largest group. This shows up in the CSV as the tracked coordinate briefly or repeatedly jumping to a fixed point near the top of the frame (e.g. `~306,7`) instead of following the salamander. This is a real limitation of "largest group of this color" as a tracking strategy rather than a bug in our Part 2 classes - the underlying `ImageGroupFinder` pipeline is working correctly on each frame it's given. Possible future improvements: crop out the enclosure rim before processing, require a minimum group size before accepting a match, or pick a target color/threshold combination that excludes the rim shadow entirely.
