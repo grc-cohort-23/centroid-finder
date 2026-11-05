@@ -1,3 +1,5 @@
+package io.github.akurfurst.centroidFinder;
+
 /**
  * Represents a location in an image or array
  * 
@@ -6,4 +8,9 @@
  * 
  * For example, (row:4, column:7) corresponds to (x:7, y:4).
  */
-public record Coordinate(int x, int y) {}
+public record Coordinate(int x, int y) {
+    
+    public Coordinate() {
+        this(-1, -1);
+    }
+}

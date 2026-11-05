@@ -1,3 +1,5 @@
+package io.github.akurfurst.centroidFinder;
+
 import java.awt.image.BufferedImage;
 
 /**
