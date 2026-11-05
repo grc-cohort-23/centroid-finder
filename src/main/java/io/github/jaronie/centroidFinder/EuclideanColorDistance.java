@@ -1,4 +1,5 @@
-public class EuclideanColorDistance implements ColorDistanceFinder {
+package io.github.jaronie.centroidFinder;
+ public class EuclideanColorDistance implements ColorDistanceFinder {
     /**
      * Returns the euclidean color distance between two hex RGB colors.
      * 
@@ -19,6 +20,23 @@ public class EuclideanColorDistance implements ColorDistanceFinder {
      */
     @Override
     public double distance(int colorA, int colorB) {
-        return 0;
+        int r = getRed(colorA) - getRed(colorB);
+        int g = getGreen(colorA) - getGreen(colorB);
+        int b = getBlue(colorA) - getBlue(colorB);
+        return Math.sqrt(r * r + g * g + b * b);
     }
+
+    private int getRed(int color) { 
+        return (color >> 16) & 0xFF;
+    }
+
+        private int getGreen(int color) { 
+        return (color >> 8) & 0xFF;
+    }
+    
+
+        private int getBlue(int color) { 
+        return color & 0xFF;
+    }
+    
 }

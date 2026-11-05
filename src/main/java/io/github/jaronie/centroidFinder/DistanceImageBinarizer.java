@@ -1,3 +1,4 @@
+package io.github.jaronie.centroidFinder;
 import java.awt.image.BufferedImage;
 
 /**
@@ -45,7 +46,24 @@ public class DistanceImageBinarizer implements ImageBinarizer {
      */
     @Override
     public int[][] toBinaryArray(BufferedImage image) {
-        return null;
+        
+        int[][] binarizedArray = new int[image.getHeight()][image.getWidth()];
+
+
+        for (int r = 0; r < image.getHeight(); r++) {
+            for (int c = 0; c < image.getWidth(); c++) {
+                
+                int rgb = image.getRGB(c, r) & 0xFFFFFF;
+
+                if (distanceFinder.distance(rgb, targetColor) < threshold) {
+                    binarizedArray[r][c] = 1;
+                } else {
+                    binarizedArray[r][c] = 0;
+                }
+            }
+        }
+
+        return binarizedArray;
     }
 
     /**
@@ -58,6 +76,19 @@ public class DistanceImageBinarizer implements ImageBinarizer {
      */
     @Override
     public BufferedImage toBufferedImage(int[][] image) {
-        return null;
+
+        BufferedImage bufferedImage = new BufferedImage(image[0].length, image.length, BufferedImage.TYPE_INT_RGB);
+
+        for (int r = 0; r < image.length; r++) {
+            for (int c = 0; c < image[0].length; c++) {
+                if (image[r][c] == 1) {
+                    bufferedImage.setRGB(c, r, 0xFFFFFF);
+                } else {
+                    bufferedImage.setRGB(c, r, 0x00000);
+                }
+            }
+        }
+
+        return bufferedImage;
     }
 }
