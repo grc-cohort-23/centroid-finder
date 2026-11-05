@@ -56,12 +56,15 @@ We will reuse the same classes ImageSummaryApp uses:
 
 ### CSVOutputWriter
 - opens the output CSV, writes one seconds,x,y row per frame, and closes the file
+- seconds always have 3 decimal places (example: 1.500,320,180)
+- no header row, to match the format of sampleOutput/groups.csv
 
 ## Design decisions
 - VideoSummaryApp is also the coordinator: lets stick with VideoSummaryApp its more clear... I just think it might go to far to make them separate because Coordinator would be likely such a small class.
 - ImageCentroidTracker is its own smaller class: it's easier to test if separate instead of needing to test the whole program.. and FrameReader is only meant to take frames of the video
 - ImageCentroidTracker returns a Coordinate instead of a Group: because if we use group it also returns a size and that would be more info than we need returned especially if there is no group found.
 - FrameReader is an interface: like we did with the FakeDistanceFinder, we can give it a fake FrameReader that gives back images we made ourselves, to test that the code is working. If we for some reason decided that JavaCV needed to be switched to JCodec we would only need to write a new JCodecFrameReader, and the rest of our code wouldn't change.
+- CSV seconds use 3 decimal places: that way its more precise without feeling messy.
 
 ## Architecture diagram
 ```
