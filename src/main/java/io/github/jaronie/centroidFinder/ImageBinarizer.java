@@ -1,3 +1,4 @@
+package io.github.jaronie.centroidFinder;
 import java.awt.image.BufferedImage;
 
 /**
