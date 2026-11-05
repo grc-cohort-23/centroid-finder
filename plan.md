@@ -38,7 +38,7 @@ We will reuse the same classes ImageSummaryApp uses:
 - Reads the 4 arguments: inputPath, outputCsv, targetColor, threshold
 - it then checks them / converts them: targetColor:int threshold:int
 - it wraps conversions in try/catch to check for the wrong number of arguments, or if strings get put in as the threshold, and that the color is a real hex code and if it's not valid it throws an exception
-
+- added a check for the color being exactly 6 hex digits and that the threshold can't be negative
 ### FrameReader (interface)
 - next frame → BufferedImage (or null when the video is over)
 - timestamp → double (seconds)
