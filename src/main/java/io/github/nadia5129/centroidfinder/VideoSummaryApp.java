@@ -18,6 +18,11 @@ import java.io.IOException;
  */
 public class VideoSummaryApp {
 
+    //Groups whose centroid is in the top TOP_MARGIN rows are ignored.
+    //In the salamander video the dark strip's centroid is always above y=20,
+    //and the salamander's is always well below, so 30 leaves room on both sides.
+    static final int TOP_MARGIN = 30;
+
     public static void main(String[] args) {
         //checks all 4 arguments, and stops the program with a clear message if one is bad
         ArgumentParser arguments;
@@ -34,7 +39,9 @@ public class VideoSummaryApp {
         ImageBinarizer binarizer = new DistanceImageBinarizer(
             new EuclideanColorDistance(), arguments.getTargetColor(), arguments.getThreshold());
         ImageGroupFinder groupFinder = new BinarizingImageGroupFinder(binarizer, new DfsBinaryGroupFinder());
-        ImageCentroidTracker tracker = new ImageCentroidTracker(groupFinder);
+        //ignore the dark strip along the top edge of the salamander videos
+        ImageGroupFinder filteredGroupFinder = new TopEdgeFilteringGroupFinder(groupFinder, TOP_MARGIN);
+        ImageCentroidTracker tracker = new ImageCentroidTracker(filteredGroupFinder);
 
         //The try statement automatically closes the video and the CSV, even if something fails
         try (FrameReader reader = new JavaCVFrameReader(arguments.getInputPath());
