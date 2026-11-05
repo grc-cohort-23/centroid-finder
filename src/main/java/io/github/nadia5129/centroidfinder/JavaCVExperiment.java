@@ -4,6 +4,8 @@ import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import java.io.File;
 
 
 public class JavaCVExperiment {
@@ -11,7 +13,7 @@ public class JavaCVExperiment {
     public static void main(String [] args) throws Exception{
 
         //sample of MP4 video - 
-        String videoPath = "sampleInput/bright_balloon_sample_video.mp4";
+        String videoPath = "sampleInput/ensantina.mp4";
 
         //The try statement automatically closes the grabber.
         // tool to read the video
