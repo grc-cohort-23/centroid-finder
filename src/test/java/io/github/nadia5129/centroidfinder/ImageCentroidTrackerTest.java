@@ -15,9 +15,13 @@ public class ImageCentroidTrackerTest {
         Group largeGroup = new Group(10, new Coordinate(5, 8));
         Group smallGroup = new Group(3, new Coordinate(2, 4));
 
-        // Fake group finder returns our predefined groups
-        ImageGroupFinder fakeFinder = image ->
-            List.of(largeGroup, smallGroup);
+        ImageGroupFinder fakeFinder = new ImageGroupFinder() {
+
+        @Override
+        public List<Group> findConnectedGroups(BufferedImage image) {
+            return List.of(largeGroup, smallGroup);
+        }
+        } ;
 
         // Create tracker using our fake group finder
         ImageCentroidTracker tracker =
@@ -33,6 +37,33 @@ public class ImageCentroidTrackerTest {
         // Check the expected centroid
         assertEquals(new Coordinate(5, 8), result);
     }
+
+   @Test
+    void returnsNegativeCoordinatesWhenNoGroupsFound() {
+
+        // Create a fake group finder
+        ImageGroupFinder fakeFinder = new ImageGroupFinder() {
+
+        @Override
+        public List<Group> findConnectedGroups(BufferedImage image) {
+            return List.of();
+        }
+        };
+
+        // Create tracker using fake finder
+        ImageCentroidTracker tracker =
+            new ImageCentroidTracker(fakeFinder);
+
+        // Create a dummy image
+        BufferedImage image =
+            new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+
+        // Call the method
+        Coordinate result = tracker.findCentroid(image);
+
+        // Check that no groups returns (-1, -1)
+        assertEquals(new Coordinate(-1, -1), result);
+}
 
    
 }
