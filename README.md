@@ -54,8 +54,11 @@ MAKE SURE YOU MAKE THOROUGH UNIT TESTS. Consider asking the AI to teach you abou
 To validate your code is working, make sure you're in the centroid-finder directory and run the below command:
 
 ```
-mvn exec:java -Dexec.args="sampleInput/squares.jpg FFA200 164"
+mvn compile
+java -cp target/classes io.github.nadia5129.centroidfinder.ImageSummaryApp sampleInput/squares.jpg FFA200 164
 ```
+
+(`mvn exec:java` now runs the video processor, so the image app is run directly with `java`.)
 
 To run the unit tests:
 
@@ -73,3 +76,31 @@ If you want to, you can make a new branch to start experimenting. See if you can
 ## Video Processing
 video 
 This branch will be used to add video processing capabilities to our centroid finder project.
+
+The video processor reads an MP4 one frame at a time and writes a CSV that tracks the largest centroid of the target color over time. Each row is `seconds,x,y`. If no centroid is found in a frame, the row is `seconds,-1,-1`. See `plan.md` for the design.
+
+### Build the JAR
+```
+mvn package
+```
+This runs all the tests, then builds `target/videoprocessor.jar` (the JAR is large because it includes FFmpeg for every operating system, and it is not committed).
+
+### Run it
+```
+java -jar target/videoprocessor.jar <inputPath> <outputCsv> <targetColor> <threshold>
+```
+Example with the sample balloon video, tracking the red-orange balloon:
+```
+java -jar target/videoprocessor.jar sampleInput/bright_balloon_sample_video.mp4 output.csv FF4500 100
+```
+
+Or run it with Maven without building the JAR:
+```
+mvn compile exec:java -Dexec.args="sampleInput/bright_balloon_sample_video.mp4 output.csv FF4500 100"
+```
+
+### Arguments
+- `inputPath` - the video file to read
+- `outputCsv` - where to write the CSV
+- `targetColor` - the color to track, as 6 hex digits in RRGGBB format (example: `FF4500`)
+- `threshold` - how close a pixel's color must be to the target color to count, as a whole number 0 or higher

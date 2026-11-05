@@ -44,12 +44,45 @@
         <artifactId>exec-maven-plugin</artifactId>
         <version>3.1.0</version>
         <configuration>
-         <!-- Original main class -->
-        <mainClass>io.github.nadia5129.centroidfinder.ImageSummaryApp</mainClass>
+        <!-- Video processor: java -jar videoprocessor.jar inputPath outputCsv targetColor threshold -->
+        <mainClass>io.github.nadia5129.centroidfinder.VideoSummaryApp</mainClass>
+
+        <!-- Original image main class -->
+        <!-- <mainClass>io.github.nadia5129.centroidfinder.ImageSummaryApp</mainClass> -->
 
         <!-- Temporarily run our JavaCV experiment -->
         <!-- <mainClass>io.github.nadia5129.centroidfinder.JavaCVExperiment</mainClass> -->
         </configuration>
+      </plugin>
+      <!-- Assembly: builds an executable JAR (target/videoprocessor.jar) with all dependencies inside -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.7.1</version>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+          <archive>
+            <manifest>
+              <mainClass>io.github.nadia5129.centroidfinder.VideoSummaryApp</mainClass>
+            </manifest>
+            <manifestEntries>
+              <!-- lets JavaCV load FFmpeg's native (C) code without warnings on newer Java versions -->
+              <Enable-Native-Access>ALL-UNNAMED</Enable-Native-Access>
+            </manifestEntries>
+          </archive>
+          <finalName>videoprocessor</finalName>
+          <appendAssemblyId>false</appendAssemblyId>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
