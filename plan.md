@@ -70,6 +70,12 @@ Converted from Google Doc: https://docs.google.com/document/d/1t6ATUeCNYo4OVpAEK
 
 ---
 
+# How we tested:
+- To verify, we crossreferenced the values in the output.csv to the actual position of the salamander in the sample video, from what we could see.
+- Using the example salamander video we verified that the following jar command worked:
+    - ```java -jar target/videoprocessor.jar ensantina.mp4 output.csv 570D0E 35```
+
+---
 ## Packaging
 
 - Maven with VideoSummaryApp as the main class, and the JAR won't be committed
