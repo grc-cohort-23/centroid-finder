@@ -30,3 +30,7 @@ target/
 *.mov
 *.avi
 *.mkv
+
+# Output files from running the apps in the main folder (sampleOutput/ is still tracked)
+/*.csv
+/binarized.png
