@@ -89,3 +89,12 @@ VideoSummaryApp (main + runs the loop)
 
 ## Validation (Wave 4)
 <!-- How you tested it on the salamander video, and how you chose the color and threshold -->
+Use JavaCVExperiment.java to extract a frame from ensantina.mp4.
+
+Run ImageSummaryApp.java on that frame.
+
+Open binarized.png to see whether the salamander is being detected.
+
+Adjust the color and threshold until the salamander is mostly white and the background is mostly black.
+
+Use those settings in VideoSummaryApp and document the results in plan.md.
