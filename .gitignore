@@ -22,3 +22,13 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+/videos
+/tweakedBotChatHistory
+
+/target
+# Maven build artifacts
+target/
+
+# Assignment video files
+*.mp4
