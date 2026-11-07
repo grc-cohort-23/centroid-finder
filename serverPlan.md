@@ -1,6 +1,8 @@
 # Salamander API – Updated Server Plan
 
 ## 1. Overview
+
+unsure if we're going to be implementing both video and images or just work with images 
 - backend- 
 I plan to create a website that allows users to select a video and customize how they want that video processed.
 Users will be able to choose a video and change different settings, such as color, opacity, and grouping. After selecting their desired settings, they will submit their request and receive a modified video when processing is complete.
@@ -172,3 +174,30 @@ JAR_PATH=./videoProcessor.jar
 ```
 
 This will make it easier to change file locations without modifying the Express code.
+
+## 8. Implementation Order
+
+1. Set up the Express server.
+2. Install Express, dotenv, and UUID.
+3. Configure the environment variables.
+4. Implement the page where users can upload video/image.
+5. Implement thumbnail generation using FFmpeg.
+6. Create the frontend request structure for video customization settings.
+7. Implement job ID generation and job status storage.
+8. Implement communication between Express and the Java JAR.
+9. Pass the selected video and customization settings to Java.
+10. Implement job status checking.
+11. Return the modified video/image to the frontend.
+12. Test the entire process from selecting a video to receiving the finished video.
+
+## 9. Things to Research
+
+- Express routes and HTTP requests.
+- dotenv and environment variables.
+- Node.js and running Java JAR files.
+- Detached processes.
+- UUID for generating job IDs.
+- FFmpeg for extracting video thumbnails.
+- Passing customization settings from Express to Java.
+
+
