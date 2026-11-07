@@ -62,3 +62,59 @@ Express will validate the settings and pass them to the Java JAR as command-line
 The Java program will be responsible for understanding and applying these settings.
 
 The exact customization options will depend on which features the Java JAR supports.
+
+## 4. API Endpoints
+
+### GET /api/videos
+
+Returns video that the user customized.
+
+Express will:
+- Read the local videos directory using Node.js filesystem methods.
+- Find available video files.
+- Return the filenames as JSON.
+
+### GET /thumbnail/:filename
+
+Returns a thumbnail of the selected video. >> Can be logo of website 
+
+Express will:
+- Locate the requested video.
+- Use FFmpeg to extract the first frame.
+- Return the thumbnail as a JPEG image.
+
+### POST /process/:filename
+
+Starts processing a selected video using the user's customization settings.
+
+
+** POSSIBLE CHANGE IN PROGRESS **
+The request will include settings such as: 
+
+- Target color.
+- Color threshold.
+- Opacity.
+- Grouping options.
+
+Express will:
+1. Validate the selected video and customization settings.
+2. Generate a unique job ID using UUID.
+3. Create a job status record.
+4. Start the Java videoProcessor JAR using Node.js child_process.
+5. Pass the selected video path and customization settings to Java.
+6. Allow the Java process to run independently in the background.
+7. Immediately return the job ID to the frontend.
+
+The Java JAR will perform all video processing and graph searching.
+
+### GET /process/:jobId/status
+
+Allows the website to check whether the video is still processing.
+
+Express will:
+- Find the job using its job ID.
+- Read the current processing status.
+- Return whether the job is processing, completed, or has failed.
+- If completed, return a URL to the modified video.
+
+Once processing is finished, the website will use the returned URL to display or download the modified video.
