@@ -35,8 +35,8 @@ flowchart TD
     L --> M[User Views or Downloads Modified Video]
 ```
 Pictures: 
-![alt text](273A5DE3-1AB8-4CBE-9E3F-EF92B3D2221C_1_102_o.jpeg)
-![alt text](2632D43C-3FA1-46CD-8ACD-218C3C3BA708_1_102_o.jpeg)
+![alt text](image-1.png)
+![alt text](image.png)
 
 The main responsibilities are:
 
