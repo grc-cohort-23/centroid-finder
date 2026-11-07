@@ -45,3 +45,20 @@ The main responsibilities are:
 - **Java JAR:** Performs video processing and all graph-search operations.
 - **Filesystem:** Stores original videos, processed videos, thumbnails, and job status information.
 
+## 3. Video Customization Options
+
+The website will allow users to customize how their selected video is processed.
+
+Some possible settings include:
+
+- **Color:** Choose a target color or color to search for.
+- **Opacity:** Choose how transparent or visible certain elements should be.
+- **Grouping:** Choose how detected objects or pixels should be grouped.
+
+The frontend will send these settings to Express along with the selected video filename.
+
+Express will validate the settings and pass them to the Java JAR as command-line arguments.
+
+The Java program will be responsible for understanding and applying these settings.
+
+The exact customization options will depend on which features the Java JAR supports.
