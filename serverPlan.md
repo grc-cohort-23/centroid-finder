@@ -118,3 +118,57 @@ Express will:
 - If completed, return a URL to the modified video.
 
 Once processing is finished, the website will use the returned URL to display or download the modified video.
+
+## 5. Java JAR Communication
+
+The Express server will use Node.js  to start the Java videoProcessor JAR.
+
+The server will pass the selected video and the user's customization settings to the JAR.
+
+The Java program will handle the actual video processing, including  graph-search logic.
+
+The Java program will save the modified video and update its job status so Express can retrieve the results.
+
+## 6. File Storage
+
+I plan to store files locally using the filesystem.
+
+```text
+UserInput/
+├── videos/
+│   ├── video.mp4
+│   └── image.png
+│
+├── UserOutput/
+│   ├── modified-video-1.mp4
+│   └── modified-image-2.png
+│
+├── thumbnails/
+│
+├── jobs/
+│   ├── job-id-1.json
+│   └── job-id-2.json
+│
+├── videoProcessor.jar
+├── server.js
+├── serverPlan.md
+└── .env
+```
+
+The jobs directory will store information about each processing request, including its ID, selected video, customization settings, status, and result location.
+
+## 7. Environment Variables
+
+Using dotenv to store important directory paths and configuration values in a `.env` file.
+
+ex port from prev classes
+```env
+PORT=3000
+VIDEOS_DIR=./videos
+RESULTS_DIR=./results
+THUMBNAILS_DIR=./thumbnails
+JOBS_DIR=./jobs
+JAR_PATH=./videoProcessor.jar
+```
+
+This will make it easier to change file locations without modifying the Express code.
