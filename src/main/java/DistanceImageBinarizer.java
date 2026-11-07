@@ -43,10 +43,30 @@ public class DistanceImageBinarizer implements ImageBinarizer {
      * @param image the input RGB BufferedImage
      * @return a 2D binary array where 1 represents white and 0 represents black
      */
+
+    
+    // get image width and height using getWidth() and getHeight()
+    // create 2d int array using new int[height][width] then loop using nested group
+    //call distance() from ColorDistanceFinder.java
     @Override
     public int[][] toBinaryArray(BufferedImage image) {
-        return null;
-    }
+        int height = image.getHeight();
+        int width = image.getWidth();
+        int[][] result = new int[height][width];
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int pixelColor = image.getRGB(x, y) & 0x00FFFFFF;
+                double distance = distanceFinder.distance(pixelColor, targetColor);
+                if(distance < threshold) {
+                    result[y][x] = 1; }
+                    else {
+                        result[y][x] = 0;
+                    }
+                }
+            }
+            return result;
+        }
 
     /**
      * Converts a binary 2D array into a BufferedImage.
@@ -57,7 +77,21 @@ public class DistanceImageBinarizer implements ImageBinarizer {
      * @return a BufferedImage where black and white pixels are represented with standard RGB hex values
      */
     @Override
-    public BufferedImage toBufferedImage(int[][] image) {
-        return null;
+    public BufferedImage toBufferedImage(int[][] image) { 
+      int height = image.length;
+    int width = image[0].length;
+
+    BufferedImage result = new BufferedImage( width, height, BufferedImage.TYPE_INT_RGB);
+
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            if (image[y][x] == 1) {
+                result.setRGB(x, y, 0xFFFFFF);
+            } else {
+                result.setRGB(x, y, 0x000000);
+            }
+        }
     }
+    return result;
+}
 }
