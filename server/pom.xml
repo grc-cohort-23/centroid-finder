@@ -27,8 +27,8 @@
   </dependencies>
 
   <build>
-    <!-- Java files live directly in src/ instead of src/main/java/... -->
-    <sourceDirectory>src</sourceDirectory>
+    <!-- Java files live directly in api/ instead of src/main/java/... -->
+    <sourceDirectory>api</sourceDirectory>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
