@@ -2,112 +2,126 @@
 
 ## 1. Overview
 
-unsure if we're going to be implementing both video and images or just work with images 
-- backend- 
-I plan to create a website that allows users to select a video and customize how they want that video processed.
-Users will be able to choose a video and change different settings, such as color, opacity, and grouping. After selecting their desired settings, they will submit their request and receive a modified video when processing is complete.
+This project is video only (no image processing).
+
+- backend-
+I plan to create a website that allows users to upload a video or pick one that is already on the server, and choose a target color and a threshold. After they submit, the video is processed and they can download a CSV file that tracks the largest group of that color over time.
 
 I plan to use Node.js and Express to build the server. Express will handle communication between the website and my existing Java videoProcessor JAR.
 
-The Express server will not contain any graph-search or video-processing algorithms. Instead, it will pass the user's selected video and customization settings to the Java JAR. The Java program will handle all the actual processing.
+The Express server will not contain any graph-search or video-processing algorithms. Instead, it will pass the selected video, the target color, and the threshold to the Java JAR. The Java program will handle all the actual processing.
 
-For now, videos will be stored locally in a directory on my computer. Users will select from the available videos rather than uploading their own.
+Videos are stored locally in a directory on my computer. Users can either upload their own video (mp4 only) or select from the videos that are already available.
 
-
-- frontend- 
-Kate and I decided to go with a star theme design with pastel colors such as purple, cyan, and yellow. The background will be a purple sky with animated clouds that are drop down and user-designated, meaning a drop down menu will appear if users click on the cloud icon. There would be an estimate of 6 pages: HomePage, Video Processor, Video Editor, Image Processor, Image Editor, ResultPage. 
+- frontend-
+Kate and I decided to go with a star theme design with pastel colors such as purple, cyan, and yellow. The background will be a purple sky with animated clouds that are drop down and user-designated, meaning a drop down menu will appear if users click on the cloud icon. There would be an estimate of 4 pages: HomePage, Video Processor, Video Editor, ResultPage.
 
 ## 2. Architecture
 
 AI Used to help create template
 ```mermaid
 flowchart TD
-    A[User / Website] --> B[Select Video]
-    B --> C[Choose Customization Settings]
+    A[User / Website] --> B[Upload or Select Video]
+    B --> C[Choose Target Color and Threshold]
     C --> D[Submit Request]
     D --> E[Express Server]
-    E --> F[Validate Settings and Create Job ID]
+    E --> F[Validate Inputs and Create Job ID]
     F --> G[Start Java JAR]
     G --> H[Java Video Processor]
-    H --> I[Video Processing and Graph Search]
-    I --> J[Save Modified Video]
-    J --> K[Update Job Status]
+    H --> I[Find Largest Centroid Each Second]
+    I --> J[Write CSV File]
+    J --> K[JAR Exits]
     K --> E
-    E --> L[Return Result URL]
-    L --> M[User Views or Downloads Modified Video]
+    E --> L[Express Updates Job Status From Exit Code]
+    L --> M[Return CSV Download URL]
+    M --> N[User Downloads CSV]
 ```
-Pictures: 
-![alt text](docs/image-1.png)
-![alt text](docs/image.png)
+Pictures:
+![alt text](image-1.png)
+![alt text](image.png)
 
 The main responsibilities are:
 
-- **Frontend:** Allows users to select videos and customize processing settings.
-- **Express:** Receives requests, validates settings, starts the Java JAR, and tracks job progress.
-- **Java JAR:** Performs video processing and all graph-search operations.
-- **Filesystem:** Stores original videos, processed videos, thumbnails, and job status information.
+- **Frontend:** Allows users to upload or select a video and choose the target color and threshold.
+- **Express:** Receives requests, validates inputs, starts the Java JAR, tracks job progress, and serves the finished CSV.
+- **Java JAR:** Performs all video processing and graph-search operations and writes the CSV.
+- **Filesystem:** Stores original videos, CSV results, thumbnails, and job status information.
 
-## 3. Video Customization Options
+## 3. Customization Options
 
-The website will allow users to customize how their selected video is processed.
+The website lets the user choose only two settings:
 
-Some possible settings include:
+- **Target color:** The color to search for, as a 6-digit hex value (RRGGBB). A browser color picker returns `#RRGGBB`, so Express removes the `#` before passing it on.
+- **Threshold:** How close a pixel's color must be to the target color. A whole number (0 or higher).
 
-- **Color:** Choose a target color or color to search for.
-- **Opacity:** Choose how transparent or visible certain elements should be.
-- **Grouping:** Choose how detected objects or pixels should be grouped.
+These are the only two settings the JAR supports.
 
-The frontend will send these settings to Express along with the selected video filename.
+## 4. Java JAR Contract
 
-Express will validate the settings and pass them to the Java JAR as command-line arguments.
+The JAR is run like this:
 
-The Java program will be responsible for understanding and applying these settings.
+```
+java -jar videoProcessor.jar <inputPath> <outputCsv> <targetColor> <threshold>
+```
 
-The exact customization options will depend on which features the Java JAR supports.
+The output CSV has one row per second of video:
 
-## 4. API Endpoints
+```
+seconds,x,y
+```
+
+- seconds = number of seconds since the start of the video
+- x, y = centroid of the largest group found at that time
+- if no group is found, the row uses `-1,-1`
+
+The JAR does not know anything about Express or job status. It only reads the video and writes the CSV. If something goes wrong, it exits with an error and Express marks the job as failed.
+
+## 5. API Endpoints
 
 ### GET /api/videos
 
-Returns video that the user customized.
+Returns the list of available video filenames as JSON.
 
 Express will:
-- Read the local videos directory using Node.js filesystem methods.
+- Read the videos directory using Node.js filesystem methods.
 - Find available video files.
 - Return the filenames as JSON.
 
-### GET /thumbnail/:filename
+### POST /upload
 
-Returns a thumbnail of the selected video. >> Can be logo of website 
+Lets a user upload a video.
 
 Express will:
-- Locate the requested video.
+- Accept only `.mp4` files and enforce a maximum file size.
+- Save the file in `UserInput/videos/`.
+- Return the saved filename.
+
+### GET /thumbnail/:filename
+
+Returns a thumbnail of the selected video.
+
+Express will:
+- Check that the filename is one of the videos in the videos directory.
 - Use FFmpeg to extract the first frame.
 - Return the thumbnail as a JPEG image.
 
 ### POST /process/:filename
 
-Starts processing a selected video using the user's customization settings.
+Starts processing a selected video.
 
-
-** POSSIBLE CHANGE IN PROGRESS **
-The request will include settings such as: 
+The request will include:
 
 - Target color.
-- Color threshold.
-- Opacity.
-- Grouping options.
+- Threshold.
 
 Express will:
-1. Validate the selected video and customization settings.
+1. Validate the filename (it must be in the videos directory), the color (exactly 6 hex digits, `#` removed), and the threshold (a number).
 2. Generate a unique job ID using UUID.
 3. Create a job status record.
-4. Start the Java videoProcessor JAR using Node.js child_process.
-5. Pass the selected video path and customization settings to Java.
-6. Allow the Java process to run independently in the background.
-7. Immediately return the job ID to the frontend.
-
-The Java JAR will perform all video processing and graph searching.
+4. Start the Java videoProcessor JAR using Node.js child_process (`spawn` or `execFile` with an array of arguments, never one shell string).
+5. Pass the video path, output CSV path, color, and threshold to Java.
+6. Immediately return the job ID to the frontend.
+7. When the JAR exits, update the job: exit code 0 means completed, anything else means failed (keep the error output as the reason).
 
 ### GET /process/:jobId/status
 
@@ -115,38 +129,41 @@ Allows the website to check whether the video is still processing.
 
 Express will:
 - Find the job using its job ID.
-- Read the current processing status.
-- Return whether the job is processing, completed, or has failed.
-- If completed, return a URL to the modified video.
+- Return whether the job is processing, completed, or failed.
+- If completed, return the URL of the CSV.
+- If failed, return the failure reason.
 
-Once processing is finished, the website will use the returned URL to display or download the modified video.
+### GET /results/:jobId
 
-## 5. Java JAR Communication
+Downloads the finished CSV for a job.
 
-The Express server will use Node.js  to start the Java videoProcessor JAR.
+Express will:
+- Check that the job exists and is completed.
+- Send `UserOutput/<jobId>.csv` as a file download.
 
-The server will pass the selected video and the user's customization settings to the JAR.
+## 6. Java JAR Communication
 
-The Java program will handle the actual video processing, including  graph-search logic.
+The Express server uses Node.js child_process to start the Java videoProcessor JAR.
 
-The Java program will save the modified video and update its job status so Express can retrieve the results.
+The server passes the video path, the output CSV path, the target color, and the threshold as command-line arguments.
 
-## 6. File Storage
+Express listens for the process to exit. The exit code decides the job status. The JAR itself never writes job status.
+
+## 7. File Storage
 
 I plan to store files locally using the filesystem.
 
 ```text
-UserInput/
-├── videos/
-│   ├── video.mp4
-│   └── image.png
+server/
+├── UserInput/
+│   └── videos/
+│       └── video.mp4
 │
 ├── UserOutput/
-│   ├── modified-video-1.mp4
-│   └── modified-image-2.png
+│   ├── job-id-1.csv
+│   └── job-id-2.csv
 │
 ├── thumbnails/
-│
 ├── jobs/
 │   ├── job-id-1.json
 │   └── job-id-2.json
@@ -157,17 +174,19 @@ UserInput/
 └── .env
 ```
 
-The jobs directory will store information about each processing request, including its ID, selected video, customization settings, status, and result location.
+The jobs directory will store information about each processing request, including its ID, selected video, color, threshold, status, and result location.
 
-## 7. Environment Variables
+Do not commit `.env`, `videoProcessor.jar`, or any videos. Add them to `.gitignore`.
+
+## 8. Environment Variables
 
 Using dotenv to store important directory paths and configuration values in a `.env` file.
 
 ex port from prev classes
 ```env
 PORT=3000
-VIDEOS_DIR=./videos
-RESULTS_DIR=./results
+VIDEOS_DIR=./UserInput/videos
+RESULTS_DIR=./UserOutput
 THUMBNAILS_DIR=./thumbnails
 JOBS_DIR=./jobs
 JAR_PATH=./videoProcessor.jar
@@ -175,29 +194,27 @@ JAR_PATH=./videoProcessor.jar
 
 This will make it easier to change file locations without modifying the Express code.
 
-## 8. Implementation Order
+## 9. Implementation Order
 
 1. Set up the Express server.
-2. Install Express, dotenv, and UUID.
+2. Install Express, dotenv, UUID, and an upload library (multer).
 3. Configure the environment variables.
-4. Implement the page where users can upload video/image.
+4. Implement video upload and the list of available videos.
 5. Implement thumbnail generation using FFmpeg.
-6. Create the frontend request structure for video customization settings.
+6. Create the frontend request for target color and threshold.
 7. Implement job ID generation and job status storage.
 8. Implement communication between Express and the Java JAR.
-9. Pass the selected video and customization settings to Java.
+9. Update job status from the JAR's exit code.
 10. Implement job status checking.
-11. Return the modified video/image to the frontend.
-12. Test the entire process from selecting a video to receiving the finished video.
+11. Implement the CSV download route.
+12. Test the entire process from picking a video to downloading the CSV.
 
-## 9. Things to Research
+## 10. Things to Research
 
 - Express routes and HTTP requests.
+- File uploads with csv
 - dotenv and environment variables.
-- Node.js and running Java JAR files.
-- Detached processes.
+- Node.js child_process and running Java JAR files (`spawn`, exit codes).
 - UUID for generating job IDs.
 - FFmpeg for extracting video thumbnails.
-- Passing customization settings from Express to Java.
-
-
+- Validating user input (filenames, hex colors, numbers).
