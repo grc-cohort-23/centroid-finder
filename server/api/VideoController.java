@@ -4,6 +4,7 @@ import java.io.File;
 
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +20,8 @@ public class VideoController {
         return ResponseEntity.notFound().build();
     }
     Resource video = new FileSystemResource(file);
-    return ResponseEntity.ok().body(video);
+    return ResponseEntity.ok()
+    .contentType(MediaType.parseMediaType("video/mp4"))
+    .body(video);
  }
 }
