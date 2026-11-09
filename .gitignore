@@ -40,3 +40,5 @@ videos/
 results/
 
 jobs/
+
+.env
