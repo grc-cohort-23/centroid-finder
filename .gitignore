@@ -34,3 +34,7 @@ target/
 *.avi
 *.mkv
 node_modules/
+
+# Server data (videos and generated results)
+videos/
+results/
