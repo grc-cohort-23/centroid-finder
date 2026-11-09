@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require("fs/promises");
 const express = require("express");
 
 // The .env file is in the main folder, one level above server/
@@ -20,6 +21,23 @@ app.use("/results", express.static(RESULTS_DIR));
 // Simple test route to check that the server runs
 app.get("/", (req, res) => {
   res.send("Salamander server is running");
+});
+
+
+// File types we count as videos
+const VIDEO_EXTENSIONS = [".mp4", ".mov", ".avi", ".mkv"];
+
+// GET /api/videos -> ["ensantina.mp4", ...]
+app.get("/api/videos", async (req, res) => {
+  try {
+    const files = await fs.readdir(VIDEOS_DIR);
+    const videos = files.filter((file) =>
+      VIDEO_EXTENSIONS.includes(path.extname(file).toLowerCase())
+    );
+    res.json(videos);
+  } catch (err) {
+    res.status(500).json({ error: "Error reading video directory" });
+  }
 });
 
 app.listen(PORT, () => {
