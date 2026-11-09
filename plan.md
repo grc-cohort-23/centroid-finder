@@ -4,7 +4,7 @@ Build a command line tool that reads an MP4, runs every frame through
 centroid-finder logic, and writes a CSV tracking the largest group's centroid over time.
 
 ## Architechture
-![Architecture diagram](diagram_centroid.JPG)
+![Architecture diagram](docs/diagram_centroid.JPG)
 
 ```
  java -jar videoprocessor.jar inputPath outputCsv targetColor threshold
