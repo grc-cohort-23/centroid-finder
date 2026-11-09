@@ -37,7 +37,7 @@ node_modules/
 
 # Server data (videos and generated results)
 videos/
-results/
+userOutput/
 
 jobs/
 
