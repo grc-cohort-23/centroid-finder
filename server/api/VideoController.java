@@ -2,6 +2,8 @@ package api;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.core.io.FileSystemResource;
@@ -46,6 +48,15 @@ public ResponseEntity<String> startProcess(@PathVariable String fileName,
     }
     //Esxpress version: res.status(202).send(jobId)
     return ResponseEntity.accepted().body(jobId);
-    
+
+}
+
+  @GetMapping("/api/videos")
+public List<String> getAllVideos(){
+    List<String> names = new ArrayList<>();
+    for (File file : new File("videos").listFiles()) {
+        names.add(file.getName());
+    }
+    return names;
 }
 }
