@@ -43,6 +43,37 @@
         <version>3.5.2</version>
       </plugin>
       <plugin>
+        <!-- Builds target/videoprocessor.jar with all dependencies (JavaCV) inside -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.7.1</version>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+          <archive>
+            <manifest>
+              <mainClass>VideoProcessorApp</mainClass>
+            </manifest>
+            <manifestEntries>
+              <!-- Lets JavaCV load its native FFmpeg libraries without warnings on newer JDKs -->
+              <Enable-Native-Access>ALL-UNNAMED</Enable-Native-Access>
+            </manifestEntries>
+          </archive>
+          <finalName>videoprocessor</finalName>
+          <appendAssemblyId>false</appendAssemblyId>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <version>3.5.0</version>
