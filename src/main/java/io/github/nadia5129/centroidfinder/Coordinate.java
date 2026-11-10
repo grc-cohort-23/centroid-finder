@@ -1,3 +1,5 @@
+package io.github.nadia5129.centroidfinder;
+
 /**
  * Represents a location in an image or array
  * 

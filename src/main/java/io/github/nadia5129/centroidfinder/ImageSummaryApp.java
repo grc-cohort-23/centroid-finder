@@ -1,3 +1,5 @@
+package io.github.nadia5129.centroidfinder;
+
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.PrintWriter;

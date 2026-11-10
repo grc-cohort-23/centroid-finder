@@ -1,3 +1,5 @@
+package io.github.nadia5129.centroidfinder;
+
 import java.awt.image.BufferedImage;
 import java.util.List;
 
@@ -37,6 +39,9 @@ public class BinarizingImageGroupFinder implements ImageGroupFinder {
      */
     @Override
     public List<Group> findConnectedGroups(BufferedImage image) {
-        return null;
+        int[][] binaryArray = binarizer.toBinaryArray(image);
+        List<Group> connectedGroups = groupFinder.findConnectedGroups(binaryArray);
+        return connectedGroups;
+
     }
 }

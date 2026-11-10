@@ -1,3 +1,5 @@
+package io.github.nadia5129.centroidfinder;
+
 /**
  * Defines an interface for computing the distance between two colors.
  * 

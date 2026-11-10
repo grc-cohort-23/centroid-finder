@@ -22,3 +22,15 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+# Maven build output
+target/
+
+# Videos (salamander videos are too big and must not be committed)
+*.mp4
+*.mov
+*.avi
+*.mkv
+
+# Output files from running the apps in the main folder (sampleOutput/ is still tracked)
+/*.csv
+/binarized.png

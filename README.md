@@ -2,7 +2,7 @@
 
 ## *DO THIS FIRST* Wave 0: AI Rules 
 AI is *NOT ALLOWED* for generating implementations of the classes.
-AI is allowed for helping you make test cases.
+AI is allowed for helping you make test cases..
 
 Don't have it just create the tests mindlessly for you though! Make sure you're actively involved in making the tests.
 
@@ -54,7 +54,16 @@ MAKE SURE YOU MAKE THOROUGH UNIT TESTS. Consider asking the AI to teach you abou
 To validate your code is working, make sure you're in the centroid-finder directory and run the below command:
 
 ```
-javac -cp lib/junit-platform-console-standalone-6.0.3.jar src/*.java && java -cp src ImageSummaryApp sampleInput/squares.jpg FFA200 164
+mvn compile
+java -cp target/classes io.github.nadia5129.centroidfinder.ImageSummaryApp sampleInput/squares.jpg FFA200 164
+```
+
+(`mvn exec:java` now runs the video processor, so the image app is run directly with `java`.)
+
+To run the unit tests:
+
+```
+mvn test
 ```
 
 This will compile your files and run the main method in ImageSummaryApp against the sample image with a target color of orange and a threshold of 164. It should binarized.png and groups.csv which should match the corresponding files in the sampleOutput directory.
@@ -64,3 +73,34 @@ Once you have confirmed it is working, clean up your code, make sure it's commit
 ## Optional Wave 7: Enhancements?
 If you want to, you can make a new branch to start experimenting. See if you can come up with a better color distance method (hint: look up perceptual color spaces). See if you can make your code more efficient or mor suited to spotting salamanders! Experiment with other test files. PLEASE MAKE SURE THIS IS IN A SEPARATE BRANCH FROM YOUR SUBMISSION.
 
+## Video Processing
+video 
+This branch will be used to add video processing capabilities to our centroid finder project.
+
+The video processor reads an MP4 one frame at a time and writes a CSV that tracks the largest centroid of the target color over time. Each row is `seconds,x,y`. If no centroid is found in a frame, the row is `seconds,-1,-1`. See `plan.md` for the design.
+
+### Build the JAR
+```
+mvn package
+```
+This runs all the tests, then builds `target/videoprocessor.jar` (the JAR is large because it includes FFmpeg for every operating system, and it is not committed).
+
+### Run it
+```
+java -jar target/videoprocessor.jar <inputPath> <outputCsv> <targetColor> <threshold>
+```
+Example with the sample balloon video, tracking the red-orange balloon:
+```
+java -jar target/videoprocessor.jar sampleInput/bright_balloon_sample_video.mp4 output.csv FF4500 100
+```
+
+Or run it with Maven without building the JAR:
+```
+mvn compile exec:java -Dexec.args="sampleInput/bright_balloon_sample_video.mp4 output.csv FF4500 100"
+```
+
+### Arguments
+- `inputPath` - the video file to read
+- `outputCsv` - where to write the CSV
+- `targetColor` - the color to track, as 6 hex digits in RRGGBB format (example: `FF4500`)
+- `threshold` - how close a pixel's color must be to the target color to count, as a whole number 0 or higher
