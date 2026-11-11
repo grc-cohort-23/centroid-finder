@@ -1,0 +1,1 @@
+`sample.mp4` is a trimmed and muted excerpt of [Dragon Levia](https://commons.wikimedia.org/wiki/File:Dragon_Levia_promotional_video_Modern_MoGal_anime.ogv) by Shepherd0821, with animation by Aku Maborosi and Lin Miu. [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).
