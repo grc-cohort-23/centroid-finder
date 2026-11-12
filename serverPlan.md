@@ -193,13 +193,6 @@ The jobs directory will store information about each processing request, includi
 
 Using dotenv to store important directory paths and configuration values in the `.env` file in the main folder. `config.js` reads the paths relative to the main folder.
 
-```env
-PORT=3000
-VIDEOS_DIR=videos
-RESULTS_DIR=results
-JOBS_DIR=jobs
-JAR_PATH=processor/target/videoprocessor.jar
-```
 
 This will make it easier to change file locations without modifying the Express code.
 
