@@ -4,7 +4,14 @@
 >The tools we will be using to interface with our centroid finder are the following:
 >`<Html><React><Javascript>`
 
-## The Plan
+## The Plan - Server
+1. Create an API with POST, GET and response outlines
+2. Interface said POST and GET's with CentroidFinder results as a response
+3. Add error handling for future ease of development
+4. Profit
+>Finished Project Step
+
+## The Plan - Frontend
 1. Create the frontend template with React
 2. Add a sample video to file-tree for default use
 3. Rig up a script to run centroid finder on the default video
