@@ -3,6 +3,7 @@
  *   GET  /api/videos
  *   GET  /thumbnail/:filename
  *   POST /process/:filename
+ *   GET  /process/:jobId/status
  */
 const express = require("express");
 const fs = require("fs/promises");
@@ -17,6 +18,8 @@ const HEX_COLOR = /^#?[0-9a-fA-F]{6}$/;
 
 // Digits only, so 0 or a positive whole number
 const WHOLE_NUMBER = /^\d+$/;
+// Job IDs are UUIDs
+const UUID = /^[0-9a-fA-F-]{36}$/;
 
 /**
  * Builds a router with all the API endpoints.
@@ -80,6 +83,8 @@ function createRoutes({ videosDir, resultsDir, jobStore, runProcessor, makeThumb
     if (!WHOLE_NUMBER.test(threshold)) {
       return res.status(400).json({ error: "threshold must be a whole number, 0 or bigger." });
     }
+    // always plain RRGGBB by remove a leading #
+    const color = targetColor.replace(/^#/, "");
 
     const videoPath = path.join(videosDir, filename);
     try {
@@ -98,7 +103,7 @@ function createRoutes({ videosDir, resultsDir, jobStore, runProcessor, makeThumb
       await jobStore.save(jobId, {
         status: "processing",
         video: filename,
-        targetColor,
+        targetColor: color,
         threshold: Number(threshold),
         result: `/results/${resultName}`,
       });
@@ -108,7 +113,7 @@ function createRoutes({ videosDir, resultsDir, jobStore, runProcessor, makeThumb
        * When it finishes, mark the job "done", or "error" if it failed.
        */
       runProcessor(
-        { videoPath, resultPath: path.join(resultsDir, resultName), targetColor, threshold },
+        { videoPath, resultPath: path.join(resultsDir, resultName), targetColor: color, threshold },
         (error) => {
           const changes = error
             ? { status: "error", error: `Error processing video: ${error.message}` }
@@ -124,6 +129,43 @@ function createRoutes({ videosDir, resultsDir, jobStore, runProcessor, makeThumb
       res.status(202).json({ jobId });
     } catch (err) {
       res.status(500).json({ error: "Error starting job" });
+    }
+  });
+  /**
+ * GET /process/:jobId/status
+ * Says whether a job is still running, finished, or failed.
+ *   { "status": "processing" }
+ *   { "status": "done", "result": "/results/<jobId>.csv" }
+ *   { "status": "error", "error": "..." }
+ */
+  router.get("/process/:jobId/status", async (req, res) => {
+    const { jobId } = req.params;
+
+    /*
+     * A real job ID always looks like a UUID.
+     * Rejecting anything else also blocks tricks like "../" in the URL.
+     */
+    if (!UUID.test(jobId)) {
+      return res.status(404).json({ error: "Job ID not found" });
+    }
+
+    try {
+      const job = await jobStore.find(jobId);
+
+      if (!job) {
+        return res.status(404).json({ error: "Job ID not found" });
+      }
+
+      // Answer in exactly the shapes the API spec shows
+      if (job.status === "done") {
+        return res.json({ status: "done", result: job.result });
+      }
+      if (job.status === "error") {
+        return res.json({ status: "error", error: job.error });
+      }
+      return res.json({ status: "processing" });
+    } catch (err) {
+      res.status(500).json({ error: "Error fetching job status" });
     }
   });
 
