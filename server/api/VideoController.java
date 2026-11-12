@@ -35,12 +35,17 @@ public class VideoController {
 public ResponseEntity<String> startProcess(@PathVariable String fileName,
                                            @RequestParam String targetColor,
                                            @RequestParam int threshold) {
+    File video = new File("videos/" + fileName);
+    if (!video.isFile()) {
+        return ResponseEntity.status(404).body("Video not found: " + fileName);
+    }
    String jobId = UUID.randomUUID().toString();
     ProcessBuilder builder = new ProcessBuilder("java", "-jar", "../centriod-finder-jar/target/videoprocessor.jar",
         "videos/" + fileName,
-        "../metadata/" + jobId + ".csv",
+        "metadata/" + jobId + ".csv",
         targetColor,
         String.valueOf(threshold));
+    builder.inheritIO(); // show the processor's output/errors in the server console
     try {
         builder.start();
     } catch (IOException e) {
@@ -58,5 +63,10 @@ public List<String> getAllVideos(){
         names.add(file.getName());
     }
     return names;
+}
+
+@GetMapping("/api/jobcheck")
+public boolean jobCheck(){
+    return false;
 }
 }
