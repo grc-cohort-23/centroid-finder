@@ -38,13 +38,12 @@ app.post('/jobs', (req, res) => {
         return res.status(404).json({ error: `Video file '${videoFilename}' not found in sampleInput directory.` });
     }
 
-    // Spawn Java process in detached mode so the HTTP request doesn't wait
+    // Spawn Java process with stdio inherited so output prints to terminal
     const javaProcess = spawn('java', ['-jar', jarPath, inputVideo, outputCsv, hexColor, tolerance], {
         detached: true,
-        stdio: 'ignore'
+        stdio: ['ignore', 'inherit', 'inherit']
     });
 
-    // Unreference the child process so Node.js can manage its lifecycle independently
     javaProcess.unref();
 
     // Respond immediately with 202 Accepted and the jobId
