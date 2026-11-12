@@ -15,4 +15,6 @@ module.exports = {
   port: Number(process.env.PORT) || 3000,
   videosDir: fromRoot(process.env.VIDEOS_DIR, "videos"),
   resultsDir: fromRoot(process.env.RESULTS_DIR, "results"),
+    jobsDir: fromRoot(process.env.JOBS_DIR, "jobs"),
+  jarPath: fromRoot(process.env.JAR_PATH, "processor/target/videoprocessor.jar"),
 };

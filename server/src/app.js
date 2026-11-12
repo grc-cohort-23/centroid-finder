@@ -3,7 +3,7 @@
 const express = require("express");
 const createRoutes = require("./routes");
 
-function createApp({ videosDir, resultsDir, makeThumbnail }) {
+function createApp({ videosDir, resultsDir, jobStore, runProcessor, makeThumbnail }) {
   const app = express();
 
   // Public folders: /videos/ensantina.mp4 and /results/ensantina.mp4.csv
@@ -12,7 +12,7 @@ function createApp({ videosDir, resultsDir, makeThumbnail }) {
 
   app.get("/", (req, res) => res.send("Salamander server is running"));
 
-  app.use(createRoutes({ videosDir, makeThumbnail }));
+  app.use(createRoutes({ videosDir, resultsDir, jobStore, runProcessor, makeThumbnail }));
 
   return app;
 }

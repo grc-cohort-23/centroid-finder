@@ -2,14 +2,18 @@
 const fs = require("fs");
 const config = require("./src/config");
 const createApp = require("./src/app");
-const { makeThumbnail } = require("./src/services");
+const { JobStore, createProcessorRunner, makeThumbnail } = require("./src/services");
 
 // Make sure the results folder exists
 fs.mkdirSync(config.resultsDir, { recursive: true });
+fs.mkdirSync(config.resultsDir, { recursive: true });
+fs.mkdirSync(config.jobsDir, { recursive: true });
 
 const app = createApp({
   videosDir: config.videosDir,
   resultsDir: config.resultsDir,
+  jobStore: new JobStore(config.jobsDir),
+  runProcessor: createProcessorRunner(config.jarPath),
   makeThumbnail,
 });
 
