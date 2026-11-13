@@ -1,0 +1,54 @@
+{
+  "info": {
+    "name": "Salamander API",
+    "description": "The 4 endpoints of the centroid-finder server. Start the server first (npm run dev in server/).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "video", "value": "ensantina.mp4" },
+    { "key": "jobId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. List videos",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/videos"
+      }
+    },
+    {
+      "name": "2. Thumbnail",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/thumbnail/{{video}}"
+      }
+    },
+    {
+      "name": "3. Start processing",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Save the jobId so request 4 can use it",
+              "pm.collectionVariables.set(\"jobId\", pm.response.json().jobId);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/process/{{video}}?targetColor=5C0005&threshold=80"
+      }
+    },
+    {
+      "name": "4. Job status",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/process/{{jobId}}/status"
+      }
+    }
+  ]
+}
