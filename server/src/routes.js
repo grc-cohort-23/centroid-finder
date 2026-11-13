@@ -8,7 +8,7 @@
 const express = require("express");
 const fs = require("fs/promises");
 const path = require("path");
-const { v4: uuidv4 } = require("uuid");
+const { randomUUID } = require("crypto");
 
 // File types we count as videos
 const VIDEO_EXTENSIONS = [".mp4", ".mov", ".avi", ".mkv"];
@@ -94,7 +94,7 @@ function createRoutes({ videosDir, resultsDir, jobStore, runProcessor, makeThumb
     }
 
     try {
-      const jobId = uuidv4();
+      const jobId = randomUUID();
 
       // Each job gets its own CSV, so the same video can be processed twice at once
       const resultName = `${jobId}.csv`;

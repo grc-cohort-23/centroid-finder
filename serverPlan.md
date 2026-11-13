@@ -239,3 +239,9 @@ Later:
 - Validating user input (filenames, hex colors, numbers).
 - FFmpeg for extracting the first frame of a video.
 - Later: file uploads with multer.
+
+## 14. Testing
+- Unit tests (Jest + Supertest): 34 tests for all 4 endpoints and JobStore,
+  using a fake JAR runner and fake thumbnail maker. Run with `npm test` in server/.
+- Postman: all 4 endpoints tested with the real JAR and ensantina.mp4.
+  The collection is in server/postman_collection.json.
