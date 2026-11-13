@@ -34,3 +34,4 @@ sampleInput/
 # Node & Env
 .env
 node_modules/
+processor/sampleOutput/*.csv
