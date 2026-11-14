@@ -68,6 +68,7 @@ public List<String> getAllVideos(){
     return names;
 }
 
+//checks if job is done. just return status for now
 @GetMapping("/api/jobcheck/{jobID}")
 public String jobCheck(@PathVariable String jobId){
     String status= jobs.get(jobId);
