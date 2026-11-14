@@ -47,7 +47,10 @@ public ResponseEntity<String> startProcess(@PathVariable String fileName,
         String.valueOf(threshold));
     builder.inheritIO(); // show the processor's output/errors in the server console
     try {
-        builder.start();
+        Process process = builder.start();
+        jobs.put(jobId, "processing");
+        process.onExit().thenAccept(p ->
+            jobs.put(jobId, p.exitValue() == 0 ? "done" : "error"));
     } catch (IOException e) {
         return ResponseEntity.internalServerError().body("Could not start processing");
     }
@@ -65,8 +68,10 @@ public List<String> getAllVideos(){
     return names;
 }
 
-@GetMapping("/api/jobcheck")
-public boolean jobCheck(){
-    return false;
+@GetMapping("/api/jobcheck/{jobID}")
+public String jobCheck(@PathVariable String jobId){
+    String status= jobs.get(jobId);
+    
+    return status;
 }
 }
