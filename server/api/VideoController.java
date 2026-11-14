@@ -44,7 +44,7 @@ public ResponseEntity<String> startProcess(@PathVariable String fileName,
         return ResponseEntity.status(404).body("Video not found: " + fileName);
     }
    String jobId = UUID.randomUUID().toString();
-    ProcessBuilder builder = new ProcessBuilder("java", "-jar", "../centriod-finder-jar/target/videoprocessor.jar",
+    ProcessBuilder builder = new ProcessBuilder("java", "-jar", "../processor/target/videoprocessor.jar",
         "videos/" + fileName,
         "metadata/" + jobId + ".csv",
         targetColor,
@@ -73,7 +73,7 @@ public List<String> getAllVideos(){
 }
 
 //checks if job is done. just return status for now
-@GetMapping("/api/jobcheck/{jobID}")
+@GetMapping("/api/jobcheck/{jobId}")
 public String jobCheck(@PathVariable String jobId){
     String status= jobs.get(jobId);
     
