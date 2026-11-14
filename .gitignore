@@ -1,3 +1,6 @@
+target
+.env
+
 # Compiled class file
 *.class
 
@@ -22,3 +25,16 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+frames/
+
+# Generated output from running the tools at the repo root
+/out.csv
+/groups.csv
+/binarized.png
+/thumb.jpg
+
+# Server runtime data: source videos, generated CSVs, cached thumbnails
+server/data/
+
+
