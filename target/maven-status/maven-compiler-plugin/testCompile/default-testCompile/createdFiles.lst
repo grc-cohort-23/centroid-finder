@@ -1,0 +1,5 @@
+BinarizingImageGroupFinderTest$FakeBinarizer.class
+BinarizingImageGroupFinderTest$FakeGroupFinder.class
+EuclideanColorDistanceTests.class
+DistanceImageBinarizerTest.class
+BinarizingImageGroupFinderTest.class
