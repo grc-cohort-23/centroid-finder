@@ -22,3 +22,23 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# maven related files/folders
+target
+processor/target
+
+# inputs
+processor/sampleInput/*.mp4
+
+# outputs
+sampleOutput/*.csv
+
+# server related
+node_modules
+
+server/videos/*
+!server/videos/.gitkeep
+server/results/*
+!server/results/.gitkeep
+
+server/backend/centroidVideoFinder.jar

@@ -1,0 +1,32 @@
+@base = http://localhost:5122
+
+### list videos -> 200 ["kitten.mp4"]
+GET {{base}}/api/videos
+
+### thumbnail -> first frame (JPEG)
+GET {{base}}/thumbnail/kitten.mp4
+
+### thumbnail, missing file -> 500
+GET {{base}}/thumbnail/nope.mp4
+
+### start a job -> 202 { jobId }
+# @name startJob
+POST {{base}}/process/kitten.mp4?targetColor=FFA200&threshold=164
+
+### missing params -> 400
+POST {{base}}/process/kitten.mp4
+
+### bad color -> 400
+POST {{base}}/process/kitten.mp4?targetColor=zzz&threshold=164
+
+### missing video -> 400
+POST {{base}}/process/nope.mp4?targetColor=FFA200&threshold=164
+
+### job status (uses the jobId from "start a job") -> processing, then done
+GET {{base}}/process/{{startJob.response.body.jobId}}/status
+
+### unknown job -> 404
+GET {{base}}/process/fake-id/status
+
+### result CSV (after status is done)
+GET {{base}}/results/kitten.mp4.csv
