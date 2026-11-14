@@ -1,11 +1,11 @@
-import app from "./app.js";
-import dotenv from 'dotenv';
+import { mkdir } from 'fs/promises';
+import app from './app.js';
+import { config } from './config.js';
 
-dotenv.config({ path: '../.env' });
+await mkdir(config.resultsDir, { recursive: true });
+await mkdir(config.jobsDir, { recursive: true });
 
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+app.listen(config.port, () => {
+  console.log(`Server running on port ${config.port}`);
 });
 
