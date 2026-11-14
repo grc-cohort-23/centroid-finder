@@ -1,5 +1,11 @@
 # Compiled class file
 *.class
+.env
+
+node_modules
+
+output.csv
+
 
 # Log file
 *.log
@@ -22,3 +28,23 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# Maven build output
+target/
+
+#App output written to the project root
+/binarized.png
+/groups.csv
+/output.csv
+
+# Validation videos (e.g. the salamander video) - do not commit real video footage.
+# processor/sampleInput/ball.mp4 is the one exception, tracked intentionally as a small test fixture.
+*.mp4
+*.mov
+*.avi
+*.mkv
+!/processor/sampleInput/ball.mp4
+
+# Server runtime output
+results/
+jobs/
