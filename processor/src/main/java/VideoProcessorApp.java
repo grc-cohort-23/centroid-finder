@@ -1,0 +1,82 @@
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.PrintWriter;
+import javax.imageio.ImageIO;
+
+/**
+ * The Video Processor Application.
+ *
+ * This application takes four command-line arguments:
+ * 1. The path to an input video file (for example, "video.mp4").
+ * 2. The path to the output CSV file (for example, "output.csv").
+ * 3. A target hex color in the format RRGGBB (for example, "FF0000" for red).
+ * 4. An integer threshold for binarization.
+ *
+ * Every frame of the video is run through the existing BinarizingImageGroupFinder.
+ * For each frame, a CSV row "seconds,x,y" is written with the centroid of the
+ * largest group, or "seconds,-1,-1" if no group is found.
+ * The first frame is also binarized and saved as "firstFrameBinarized.png".
+ *
+ * Usage:
+ *   java VideoProcessorApp <input_video> <output_csv> <hex_target_color> <threshold>
+ */
+public class VideoProcessorApp {
+    public static void main(String[] args) {
+        if (args.length < 4) {
+            System.out.println("Usage: java VideoProcessorApp <input_video> <output_csv> <hex_target_color> <threshold>");
+            return;
+        }
+
+        VideoProcessorArguments arguments = null;
+        try {
+            arguments = new VideoProcessorArguments(args);
+        } catch (IllegalArgumentException e) {
+            System.err.println(e.getMessage());
+            return;
+        }
+
+        String inputPath = arguments.getInputPath();
+        String outputCsv = arguments.getOutputCsv();
+        int targetColor = arguments.getTargetColor();
+        int threshold = arguments.getThreshold();
+
+        ColorDistanceFinder distanceFinder = new EuclideanColorDistance();
+        ImageBinarizer binarizer = new DistanceImageBinarizer(distanceFinder, targetColor, threshold);
+
+        // Reuse the existing group finder to track the largest centroid
+        ImageGroupFinder groupFinder = new BinarizingImageGroupFinder(binarizer, new DfsBinaryGroupFinder());
+        CentroidTracker tracker = new CentroidTracker(groupFinder);
+
+        // Centroids that jump more than 50 pixels from the last good one are written as -1,-1
+        AnomalyDetector anomalyDetector = new AnomalyDetector(50);
+
+        try (VideoFrameReader reader = new VideoFrameReader(inputPath);
+             PrintWriter writer = new PrintWriter(outputCsv)) {
+            int frameCount = 0;
+            TimestampedFrame frame;
+            while ((frame = reader.nextFrame()) != null) {
+                BufferedImage image = frame.image();
+                double seconds = frame.seconds();
+
+                if (frameCount == 0) {
+                    int[][] binaryArray = binarizer.toBinaryArray(image);
+                    BufferedImage binaryImage = binarizer.toBufferedImage(binaryArray);
+
+                    ImageIO.write(binaryImage, "png", new File("firstFrameBinarized.png"));
+                }
+
+                Coordinate centroid = tracker.findLargestCentroid(image);
+                if (anomalyDetector.isAnomaly(centroid)) {
+                    centroid = new Coordinate(-1, -1);
+                }
+
+                writer.println(seconds + "," + centroid.x() + "," + centroid.y());
+
+                frameCount++;
+            }
+        } catch (Exception e) {
+            System.err.println("Error processing video: " + inputPath);
+            e.printStackTrace();
+        }
+    }
+}
