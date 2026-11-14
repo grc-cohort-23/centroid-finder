@@ -53,7 +53,8 @@ public ResponseEntity<Map<String, String>> startProcess(@PathVariable String fil
         "metadata/" + jobId + ".csv",
         targetColor,
         String.valueOf(threshold));
-    builder.inheritIO(); // show the processor's output/errors in the server console
+    builder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+    builder.redirectError(ProcessBuilder.Redirect.DISCARD);
     try {
         Process process = builder.start();
         jobs.put(jobId, "processing");
@@ -95,5 +96,23 @@ public ResponseEntity<Map<String, String>> jobCheck(@PathVariable String jobId){
         return ResponseEntity.ok(Map.of("status", status, "error", "Error processing video"));
     }
     return ResponseEntity.ok(Map.of("status", status));
+}
+@GetMapping("/api/thumbnail/{fileName}")
+public ResponseEntity<?> getThumbnail(@PathVariable String fileName){
+    File file = new File("videos/" + fileName);
+    if (!file.exists()) {
+        return ResponseEntity.notFound().build();
+    }
+    try {
+        Process ffmpeg = new ProcessBuilder("ffmpeg", "-i", file.getPath(),
+                "-frames:v", "1", "-f", "image2pipe", "-vcodec", "mjpeg", "-")
+                .redirectError(ProcessBuilder.Redirect.DISCARD)
+                .start();
+        byte[] jpeg = ffmpeg.getInputStream().readAllBytes();
+        return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(jpeg);
+    } catch (IOException e) {
+        return ResponseEntity.internalServerError()
+                .body(Map.of("error", "Error generating thumbnail"));
+    }
 }
 }
