@@ -1,3 +1,5 @@
+package io.github.BushyMustache.centroidFinder;
+
 import java.awt.image.BufferedImage;
 import java.util.List;
 
@@ -37,6 +39,8 @@ public class BinarizingImageGroupFinder implements ImageGroupFinder {
      */
     @Override
     public List<Group> findConnectedGroups(BufferedImage image) {
-        return null;
+        int[][] binaryImage = binarizer.toBinaryArray(image);
+        
+        return groupFinder.findConnectedGroups(binaryImage);
     }
 }
