@@ -4,19 +4,25 @@ What improvements can you make to the design/architecture of your code?
 - Remove code that are commented and not needed, unused files/methods, and add summaries on each page to ensure everyone knows what that file does
 How can you split up large methods or classes into smaller components?
 - 
+- adding helper methods 
 - The rest of our method is under 100 lines currently.
 Are there unused files/methods that can be removed?
 - We have results folder is currently empty
 Where would additional Java interfaces be appropriate?
+- on methods that are long and would need a lot of tests on
 How can you make things simpler, more-usable, and easier to maintain?
+- helper methods
 Other refactoring improvements?
+- just adding comments 
 ## adding tests
-What portions of your code are untested / only lightly tested?
+- What portions of your code are untested / only lightly tested? TrackingResultTest has been lightly tested, and I feel like CentroidTrackerTest needs more tests
 Where would be the highest priority places to add new tests?
+- For TrackingResultTest and VideoProcessorTest because we should be checking if an mp4 file is too big, no color at all, or things like that
 Other testing improvements?
 
  ## improving error handling
 What parts of your code are brittle?
+- 
 Where could you better be using exceptions?
 Where can you better add input validation to check invalid input?
 How can you better be resolving/logging/surfacing errors? Hint: almost any place you're using "throws Exception" or "catch(Exception e)" should likely be improved to specify the specific types of exceptions that might be thrown or caught.
