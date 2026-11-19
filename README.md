@@ -4,6 +4,10 @@
 AI is *NOT ALLOWED* for generating implementations of the classes.
 AI is allowed for helping you make test cases.
 
+"I, JPbooya, understand that AI is ONLY to be used for tests, and that every commit that I use AI for must start with 'AI Used'"
+
+"I, buaypd, understand that AI is ONLY to be used for tests, and that every commit that I use AI for must start with 'AI Used'"
+
 Don't have it just create the tests mindlessly for you though! Make sure you're actively involved in making the tests.
 
 DO NOT MIX HUMAN AND AI COMMITS.
