@@ -1,61 +1,36 @@
-import {useEffect, useRef } from "react";
+import { useState } from 'react'
+import { Alert } from '@mui/material'
 
-export default function VideoFrame({ filename }) {
+export default function VideoFrame({ title, imageUrl, width, height, centroid }) {
+  const [imageStatus, setImageStatus] = useState('loading')
 
-    const videoRef = useRef(null);
-    const canvasRef = useRef(null);
-
-
-    useEffect(() => {
-        const video = videoRef.current;
-        const canvas = canvasRef.current;
-
-
-
-        if(!filename || !video || !canvas) return;
-
-        function drawFrame() {
-
-            const ctx = canvas.getContext("2d");
-            if (!ctx || !video.videoWidth || !video.videoHeight) return;
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-
-            ctx.drawImage(video, 0, 0);
-
-        }
-
-       video.addEventListener("loadeddata", drawFrame);
-
-        if (video.readyState >= 2) {
-            drawFrame();
-        } else {
-            video.load();
-        }
-
-        return () => {
-            video.removeEventListener("loadeddata", drawFrame);
-
-        };
-    }, [filename]);
-
-    if (!filename) {
-        return <p>Select a video to preview</p>;
-    }
-    return (
-        <>
-        <video
-        ref={videoRef}
-         src={`/videos/${encodeURIComponent(filename)}`}
-         preload="auto"
-         muted
-         style={{ display: "none" }}
-        />
-
-        <canvas
-        ref={canvasRef}
-        style={{ maxWidth: "100%", height: "auto" }}
-        />
-        </>
-    );
+  return (
+    <section className="frame">
+      <h2>{title}</h2>
+      {imageStatus === 'error' ? (
+        <Alert severity="error">The image could not load. Refresh the page to request a new preview.</Alert>
+      ) : (
+        <div className="frame-image">
+          <img
+            src={imageUrl}
+            alt={title}
+            width={width}
+            height={height}
+            onLoad={() => setImageStatus('ready')}
+            onError={() => setImageStatus('error')}
+          />
+          {imageStatus === 'ready' && centroid && (
+            <span
+              className="centroid-marker"
+              aria-hidden="true"
+              style={{
+                left: `${((centroid.x + 0.5) / width) * 100}%`,
+                top: `${((centroid.y + 0.5) / height) * 100}%`,
+              }}
+            />
+          )}
+        </div>
+      )}
+    </section>
+  )
 }

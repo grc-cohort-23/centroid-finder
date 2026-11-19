@@ -1,12 +1,10 @@
-import { useState } from "react"
-
-
 export default function ThresholdPicker({value, onChange}) {
 
     return (
         <>
         <div>
-            <input 
+            <input
+            id="threshold"
             type="range"
             min="0"
             max="442"
