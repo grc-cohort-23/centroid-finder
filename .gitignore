@@ -22,3 +22,23 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# macOS
+.DS_Store
+
+target/
+
+# Videos
+*.mp4
+*.mov
+*.avi
+*.mkv
+node_modules/
+
+# Server data (videos and generated results)
+videos/
+userOutput/
+
+jobs/
+
+*.env
