@@ -48,3 +48,6 @@ target/
 # Server runtime output
 results/
 jobs/
+server/results_dir/
+server/jobs_dir/
+test.csv
