@@ -1,24 +1,48 @@
-export default function VideoPicker() {
+import { useState, useEffect } from "react";
+
+
+export default function VideoPicker({onSelect}) {
+    const [videos, setVideos] = useState([]);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        async function fetchVideos() {
+            try{
+                const response = await fetch("/api/videos");
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch videos");
+
+                }
+
+                const data = await response.json();
+                setVideos(data);
+
+            } catch (err) {
+                setError(err.message);
+            }
+        }
+        fetchVideos();
+    }, []);
     return (
-        <>
-        {/* Use a .map() to list all available videos from the server */}
-        <ls>
-            <ol>
-                Ensatina escholzii 04_04_25 (1).mov - <link title="Preview"></link> - <link title="Playback"></link>
-            </ol>
-            <ol>
-                Ensatina escholzii 04_04_25 (1).mov - <link title="Preview"></link> - <link title="Playback"></link>
-            </ol>
-            <ol>
-                Ensatina escholzii 04_04_25 (1).mov - <link title="Preview"></link> - <link title="Playback"></link>
-            </ol>
-            <ol>
-                Ensatina escholzii 04_04_25 (1).mov - <link title="Preview"></link> - <link title="Playback"></link>
-            </ol>
-            <ol>
-                Ensatina escholzii 04_04_25 (1).mov - <link title="Preview"></link> - <link title="Playback"></link>
-            </ol>
-        </ls>
-        </>
-    )
+
+        <ul>
+            {error && <p>{error}</p>}
+
+            {videos.map((video) => (
+                <li key={video}>
+                    {video}{" "}
+                    <button onClick={() => onSelect(video)}>
+                        Preview 
+                        </button> 
+                        {" "}
+                        <a href ={`/videos/${encodeURIComponent(video)}`} target="_blank" rel="noreferrer">
+                        Playback
+                        </a>
+                </li>
+            ))}
+        </ul>
+        
+    );
+
 }

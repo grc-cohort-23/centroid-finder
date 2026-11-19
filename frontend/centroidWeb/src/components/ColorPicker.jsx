@@ -1,6 +1,10 @@
-export default function ColorPicker() {
+export default function ColorPicker({value, onChange }) {
 
     return (
-        <div style={{margin: 5, border: 1, borderColor: "red"}}></div>
-    )
+        <div><input
+        type="color"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}/>
+        </div>
+    );
 }

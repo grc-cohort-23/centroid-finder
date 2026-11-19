@@ -10,6 +10,7 @@ app.use(express.json());
 
 // Resolve absolute directories based on .env config
 const videosDir = path.join(__dirname, '../', process.env.VIDEOS_DIR || 'processor/sampleInput');
+
 const outputDir = path.join(__dirname, '../', process.env.OUTPUT_DIR || 'processor/sampleOutput');
 
 // Expose static files so clients/frontend can access videos and output CSVs
@@ -21,6 +22,18 @@ app.use('/outputs', express.static(outputDir));
  * Initiates video processing asynchronously using the existing Java JAR.
  * Expected JSON body: { "videoFilename": "ensantina_small.mp4", "hexColor": "FFA200", "tolerance": "164" }
  */
+
+app.get('/api/videos', (req, res) => {
+    fs.readdir(videosDir, (err, files) => {
+        if (err) {
+            return res.status(500).json({
+                error: 'Unable to retrieve videos'
+            });
+        }
+        const videos = files.filter(file => /\.(mp4|mov)$/i.test(file) );
+        res.json(videos);
+    });
+});
 app.post('/jobs', (req, res) => {
     const { videoFilename, hexColor, tolerance } = req.body;
 

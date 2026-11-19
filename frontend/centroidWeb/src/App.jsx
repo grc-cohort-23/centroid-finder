@@ -5,7 +5,12 @@ import ThresholdPicker from './components/ThresholdPicker'
 import VideoPicker from './components/VideoPicker'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [Threshold, setThreshold] = useState(30);
+  const [targetColor, setTargetColor] =useState("#FFA200");
+  const [selectedVideo, setSelectedVideo] = useState("");
+
+
+
 
   return (
     <div>
@@ -14,11 +19,18 @@ function App() {
         <div className='controls'>
           <div className='control'>
             <p>Target Color:</p>
-            <ColorPicker/>
+            <ColorPicker
+            value={targetColor}
+            onChange={setTargetColor}
+            />
+
           </div>
           <div className='control'>
             <p>Threshold:</p>
-            <ThresholdPicker/>
+            <ThresholdPicker
+            value={Threshold}
+            onChange={setThreshold}
+            />
           </div>
         </div>
         <div className='frameContainer'>
@@ -35,7 +47,12 @@ function App() {
       </section>
       <section id="videos">
         <h1>Available Videos</h1>
-        <VideoPicker/>
+        <VideoPicker onSelect={setSelectedVideo} />
+
+        {selectedVideo && (
+          <p>Selected video: {selectedVideo}</p>
+          
+        )}
       </section>
       <div className="ticks"></div>
     </div>
