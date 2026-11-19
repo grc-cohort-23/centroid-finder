@@ -1,13 +1,15 @@
 ## refactoring code
 What improvements can you make to the design/architecture of your code?
-- 
+- service.js and src/ need fixing, so that it cleaner
 How can you split up large methods or classes into smaller components?
-- 
 - The rest of our method is under 100 lines currently.
 Are there unused files/methods that can be removed?
-- We have results folder is currently empty
+- We have results folder is currently empty, and clean up empty, redunddant one
+- loose files scatter around
 Where would additional Java interfaces be appropriate?
+- ... Thinking about it for a while now, maybe implement or check csvResultWriter again
 How can you make things simpler, more-usable, and easier to maintain?
+- Updated README and right now, names really confusing and a lot to look at, will check and go through again to find the best way for easier look at. (the typo that i fix todayfor videoProcessor and videoprocessor shouldnt happend at all)
 Other refactoring improvements?
 adding tests
 What portions of your code are untested / only lightly tested?
