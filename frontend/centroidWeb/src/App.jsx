@@ -3,6 +3,7 @@ import './App.css'
 import ColorPicker from './components/ColorPicker'
 import ThresholdPicker from './components/ThresholdPicker'
 import VideoPicker from './components/VideoPicker'
+import VideoFrame from "./components/VideoFrame";
 
 function App() {
   const [Threshold, setThreshold] = useState(30);
@@ -35,7 +36,8 @@ function App() {
         </div>
         <div className='frameContainer'>
           <div className='frame'>
-            <h2>Original Frame (with centroid)</h2>
+            <h2>Original Frame </h2>
+            <VideoFrame filename={selectedVideo} />
             {/* <img src=''/> */}
           </div>
           <div className='frame'>
@@ -51,7 +53,7 @@ function App() {
 
         {selectedVideo && (
           <p>Selected video: {selectedVideo}</p>
-          
+
         )}
       </section>
       <div className="ticks"></div>
