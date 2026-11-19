@@ -42,11 +42,14 @@ router.post('/process/:filename', async (req, res) => {
       createdAt: new Date().toISOString(),
     });
 
+    let stderrOutput = '';
     const child = spawn(
       'java',
       ['-jar', config.jarPath, videoPath, outputPath, targetColor, threshold],
-      { detached: true, stdio: 'ignore' }
+      { detached: true, stdio: ['ignore', 'ignore', 'pipe'] }
     );
+
+    child.stderr.on('data', (chunk) => { stderrOutput += chunk.toString(); });
 
     child.on('error', async (err) => {
       await updateJob(jobId, { status: 'error', error: `Error processing video: ${err.message}` })
@@ -60,9 +63,10 @@ router.post('/process/:filename', async (req, res) => {
         if (code === 0 && hasCsv) {
           await updateJob(jobId, { status: 'done', result: `/results/${jobId}.csv` });
         } else {
+          const detail = stderrOutput.trim() || 'the processor did not produce a result';
           await updateJob(jobId, {
             status: 'error',
-            error: 'Error processing video: the processor did not produce a result',
+            error: `Error processing video: ${detail}`,
           });
         }
       } catch (err) {
