@@ -24,7 +24,7 @@ Other testing improvements?
 
  ## improving error handling
 What parts of your code are brittle?
-- 
+- implementation that is redundant 
 Where could you better be using exceptions?
 Where can you better add input validation to check invalid input?
 How can you better be resolving/logging/surfacing errors? Hint: almost any place you're using "throws Exception" or "catch(Exception e)" should likely be improved to specify the specific types of exceptions that might be thrown or caught.
