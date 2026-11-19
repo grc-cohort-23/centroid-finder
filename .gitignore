@@ -33,3 +33,5 @@ target/
 *.mov
 *.avi
 *.mkv
+
+node_modules/
