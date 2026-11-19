@@ -1,7 +1,11 @@
-refactoring code
+## refactoring code
 What improvements can you make to the design/architecture of your code?
+- 
 How can you split up large methods or classes into smaller components?
+- 
+- The rest of our method is under 100 lines currently.
 Are there unused files/methods that can be removed?
+- We have results folder is currently empty
 Where would additional Java interfaces be appropriate?
 How can you make things simpler, more-usable, and easier to maintain?
 Other refactoring improvements?
