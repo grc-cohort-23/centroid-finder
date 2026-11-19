@@ -110,7 +110,37 @@ code {
   background: var(--code-bg);
 }
 
+.controls,
 .frameContainer {
-  flex: auto;
+  display: flex;
   flex-direction: row;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.frame {
+  flex: 1;
+  min-width: 0; /* lets images shrink instead of overflowing */
+}
+
+.frame img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Stack on small screens */
+@media (max-width: 640px) {
+  .controls,
+  .frameContainer {
+    flex-direction: column;
+    align-items: center;
+  }
 }

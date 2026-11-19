@@ -9,24 +9,24 @@ function App() {
 
   return (
     <div>
-      <section id="center" style={{flex: 0}}>
-        <div>
-          <h1>Preview Processing</h1>
-          <div>
+      <section id="center">
+        <h1>Preview Processing</h1>
+        <div className='controls'>
+          <div className='control'>
             <p>Target Color:</p>
             <ColorPicker/>
           </div>
-          <div>
+          <div className='control'>
             <p>Threshold:</p>
             <ThresholdPicker/>
           </div>
         </div>
-        <div id='frameContainer'>
-          <div>
+        <div className='frameContainer'>
+          <div className='frame'>
             <h2>Original Frame (with centroid)</h2>
             {/* <img src=''/> */}
           </div>
-          <div>
+          <div className='frame'>
             <h2>Binarized Frame (with centroid)</h2>
             {/* <img src=''/> */}
           </div>
@@ -38,7 +38,6 @@ function App() {
         <VideoPicker/>
       </section>
       <div className="ticks"></div>
-      <section id="spacer"></section>
     </div>
   )
 }
