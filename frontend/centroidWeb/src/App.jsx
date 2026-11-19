@@ -1,64 +1,42 @@
 import { useState } from 'react'
-import './App.css'
-import ColorPicker from './components/ColorPicker'
-import ThresholdPicker from './components/ThresholdPicker'
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { Alert } from '@mui/material'
 import VideoPicker from './components/VideoPicker'
-import VideoFrame from "./components/VideoFrame";
+import PreviewPage from './components/PreviewPage'
+import './App.css'
 
-function App() {
-  const [Threshold, setThreshold] = useState(30);
-  const [targetColor, setTargetColor] =useState("#FFA200");
-  const [selectedVideo, setSelectedVideo] = useState("");
-
-
-
-
-  return (
-    <div>
-      <section id="center">
-        <h1>Preview Processing</h1>
-        <div className='controls'>
-          <div className='control'>
-            <p>Target Color:</p>
-            <ColorPicker
-            value={targetColor}
-            onChange={setTargetColor}
-            />
-
-          </div>
-          <div className='control'>
-            <p>Threshold:</p>
-            <ThresholdPicker
-            value={Threshold}
-            onChange={setThreshold}
-            />
-          </div>
-        </div>
-        <div className='frameContainer'>
-          <div className='frame'>
-            <h2>Original Frame </h2>
-            <VideoFrame filename={selectedVideo} />
-            {/* <img src=''/> */}
-          </div>
-          <div className='frame'>
-            <h2>Binarized Frame (with centroid)</h2>
-            {/* <img src=''/> */}
-          </div>
-        </div>
-        <button>Process Video with These Settings</button>
-      </section>
-      <section id="videos">
-        <h1>Available Videos</h1>
-        <VideoPicker onSelect={setSelectedVideo} />
-
-        {selectedVideo && (
-          <p>Selected video: {selectedVideo}</p>
-
-        )}
-      </section>
-      <div className="ticks"></div>
-    </div>
-  )
+function PreviewRoute(props) {
+  const { pathname } = useLocation()
+  let filename
+  try {
+    // Decode the URL segment once so literal percent escapes in filenames are preserved.
+    filename = decodeURIComponent(pathname.split('/').filter(Boolean).at(-1))
+  } catch {
+    return <Alert severity="error">The video link contains an invalid filename.</Alert>
+  }
+  return <PreviewPage key={filename} filename={filename} {...props} />
 }
 
-export default App
+export default function App() {
+  const navigate = useNavigate()
+  const [threshold, setThreshold] = useState(30)
+  const [targetColor, setTargetColor] = useState('#FFA200')
+
+  return (
+    <main>
+      <Routes>
+        <Route path="/" element={<Navigate to="/videos" replace />} />
+        <Route path="/videos" element={
+          <section id="videos">
+            <h1>Available Videos</h1>
+            <VideoPicker onSelect={(filename) => navigate(`/preview/${encodeURIComponent(filename)}`)} />
+          </section>
+        } />
+        <Route path="/preview/:filename" element={
+          <PreviewRoute {...{ threshold, setThreshold, targetColor, setTargetColor }} />
+        } />
+        <Route path="*" element={<Navigate to="/videos" replace />} />
+      </Routes>
+    </main>
+  )
+}

@@ -1,15 +1,17 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
-// https://vite.dev/config/
+const apiServer = process.env.CENTROID_API_URL || 'http://127.0.0.1:3000'
+const proxy = {
+  '/api': apiServer,
+  '/outputs': apiServer,
+  '^/videos/[^/?]+': apiServer,
+  '/previews': apiServer,
+  '/jobs': apiServer,
+}
+
 export default defineConfig({
   plugins: [react()],
-  server: {
-    proxy: {
-      '/api': 'http://localhost:3000',
-      '/outputs': 'http://localhost:3000',
-      '/videos': 'http://localhost:3000',
-      '/jobs': 'http://localhost:3000',
-    },
-  },
+  server: { proxy },
+  preview: { proxy },
 })
