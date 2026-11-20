@@ -45,7 +45,29 @@ public class DistanceImageBinarizer implements ImageBinarizer {
      */
     @Override
     public int[][] toBinaryArray(BufferedImage image) {
-        return null;
+        int row = image.getHeight();
+        int col =image.getWidth();
+        int[][] answer = new int[row][col];
+
+        for(int r = 0; r < row ; r++ ){
+            for(int c = 0; c < col ; c++){
+
+                int color;
+                
+                //the & 0x00FFFFFF is to ensure the Alpha bits are 0
+                if(distanceFinder.distance(image.getRGB(c, r) & 0x00FFFFFF, targetColor) < threshold){
+                    color = 1;
+                }
+                else{
+                    color = 0;
+                }
+                answer[r][c] = color;
+
+                //  System.out.print(color+ " | ");
+            }
+        //   System.out.println();
+        }
+        return answer;
     }
 
     /**
@@ -58,6 +80,68 @@ public class DistanceImageBinarizer implements ImageBinarizer {
      */
     @Override
     public BufferedImage toBufferedImage(int[][] image) {
-        return null;
+        int width = image[0].length;
+        int height = image.length;
+
+        BufferedImage testImg = new BufferedImage(width,height, BufferedImage.TYPE_INT_RGB);
+
+        for(int r = 0; r < height ; r++ ){
+            for(int c = 0; c < width ; c++){
+
+                if(image[r][c] == 0){
+                    testImg.setRGB(c,r, 0x000000);
+                }
+                else if(image[r][c] == 1){
+                    testImg.setRGB(c,r, 0xFFFFFF);
+                }
+          
+            }
+        }
+        return testImg;
+    }
+
+    public static void main(String[] args) {
+        int width = 10;
+        int height = 10;
+
+        int targetColor = 0x123456;
+        int threshold = 1;
+
+        BufferedImage testImg = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        boolean swap = true;
+        for(int r = 0; r < height ; r++ ){
+            for(int c = 0; c < width ; c++){
+                if(swap && c % 2 != 0){
+                    testImg.setRGB(c, r, 0x123456);
+                }
+                else if(!swap && c % 2 == 0){
+                    testImg.setRGB(c, r, 0x123456);
+                }
+                else{
+                    testImg.setRGB(c, r, 0x654321);
+                }
+                    //int colorNoAlpha = testImg.getRGB(c, r);
+                    //System.out.print(colorNoAlpha + " | " );
+            }
+            swap = !swap;
+           //System.out.println();
+        }
+        // try {
+
+        //     File file = new File("sampleInput\\squares.png");
+
+        //     testImg = ImageIO.read(file);
+
+        //     System.out.println("Image Dimensions: " + testImg.getWidth() + "x" + testImg.getHeight());
+
+        // } catch (IOException e) {
+        //     System.out.println("Error reading the image file: " + e.getMessage()); 
+        // }
+        
+        ColorDistanceFinder cdf = new EuclideanColorDistance(); 
+        DistanceImageBinarizer dib = new DistanceImageBinarizer(cdf, targetColor, threshold);
+
+        dib.toBinaryArray(testImg);
+
     }
 }

@@ -1,66 +1,105 @@
-# centroid-finder
+# Installation and usage
 
-## *DO THIS FIRST* Wave 0: AI Rules 
-AI is *NOT ALLOWED* for generating implementations of the classes.
-AI is allowed for helping you make test cases.
-
-Don't have it just create the tests mindlessly for you though! Make sure you're actively involved in making the tests.
-
-DO NOT MIX HUMAN AND AI COMMITS.
-EVERY COMMIT THAT USES AI MUST START WITH THE COMMIT MESSAGE "AI Used" AND IT MUST ONLY CREATE/ALTER TEST FILES
-
-For this wave, please have each partner make a commit below with their username acknowledging that they understand the rules, according to the following format:
-
-"I, YOUR_GITHUB_USERNAME, understand that AI is ONLY to be used for tests, and that every commit that I use AI for must start with 'AI Used'"
-
-## Wave 1: Understand
-Read through ImageSummaryApp in detail with your partner. Understand what each part does. This will involve looking through and reading ALL of the other classes records and interfaces. This will take a long time, but it is worth it! Do not skimp on this part, you will regret it! Also look at the sampleInput and sampleOutput folders to understand what comes in and what goes out.
-
-As you read through the files, take notes in notes.md to help you and your partner understand. Make frequent commits to your notes.
-
-## Wave 2: Implement DfsBinaryGroupFinder
-This class takes in a binary image array and finds the connected groups. It will look very similar in many ways to the explorer problem you did for DFS! You'll need to understand the Group record to do this well.
-
-Consider STARTING with the unit tests. Remember, you can use AI to help with the unit tests but NOT the implementation. Any AI commit must start with the message "AI Used"
-
-MAKE SURE YOU MAKE THOROUGH UNIT TESTS.
-
-## Wave 3: Implement EuclideanColorDistance
-Implement EuclideanColorDistance. You may consider adding a helper method for converting a hex int into R, G, and B components.
-
-Again, consider starting with unit tests. You may consider using WolframAlpha to help you get correct expected values.
-
-MAKE SURE YOU MAKE THOROUGH UNIT TESTS.
-
-## Wave 4: Implement DistanceImageBinarizer
-To do this you will need to research `java.awt.image.BufferedImage`. In particular, make sure to understand `getRGB` and `setRGB`. When creating a new image, you can use the below to start the instance:
+## **CLONE REPO**
 
 ```
-new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+git clone https://github.com/KJeansGR/SDEV334-centroid-finder.git
 ```
 
-Note that a lot of this class will be calling methods in BinaryGroupFinder and ColorDistanceFinder!
+<br />
+<hr>
+<br />
 
-MAKE SURE YOU MAKE THOROUGH UNIT TESTS. Consider asking the AI to teach you about mocks and fakes in unit testing and how they may be helpful here.
 
-HINT: `getRGB` returns a 32-bit AARRGGBB color (includes alpha channel). However, ColorDistanceFinder expects the colors to come in RRGGBB format (no alpha channel (most significant 8 bits set to 0)). What can you do to make this conversion happen?
+## **FRONT END**
 
-## Wave 5: Implement BinarizingImageGroupFinder
-This implementation will be relatively short! It will mostly be calling methods in ImageBinarizer and BinaryGroupFinder.
-
-MAKE SURE YOU MAKE THOROUGH UNIT TESTS. Consider asking the AI to teach you about mocks and fakes in unit testing and how they may be helpful here. I recommend NOT using any external library other than JUnit. If the AI wants to use another external library, consider asking it not to and to make stubs instead.
-
-## Wave 6: Validation
-To validate your code is working, make sure you're in the centroid-finder directory and run the below command:
+### 1. enter the frontend directory, and basic npm install:
 
 ```
-javac -cp lib/junit-platform-console-standalone-6.0.3.jar src/*.java && java -cp src ImageSummaryApp sampleInput/squares.jpg FFA200 164
+cd SDEV334-centroid-finder/frontend<br /><br />
+npm install<br /><br />
 ```
 
-This will compile your files and run the main method in ImageSummaryApp against the sample image with a target color of orange and a threshold of 164. It should binarized.png and groups.csv which should match the corresponding files in the sampleOutput directory.
+### 2. Create a .env file inside the frontend directory:
 
-Once you have confirmed it is working, clean up your code, make sure it's committed and pushed, and make a PR to submit. Great job!
+```
+ VITE_API_URL=http://localhost:3000
+```
 
-## Optional Wave 7: Enhancements?
-If you want to, you can make a new branch to start experimenting. See if you can come up with a better color distance method (hint: look up perceptual color spaces). See if you can make your code more efficient or mor suited to spotting salamanders! Experiment with other test files. PLEASE MAKE SURE THIS IS IN A SEPARATE BRANCH FROM YOUR SUBMISSION.
+### 3. Start the development server:
 
+``` 
+npm run dev 
+```
+
+<br />
+<hr>
+<br />
+
+## Working front end screenshots example
+
+| Available Videos | Video Preview | Processing Results |
+|:---:|:---:|:---:|
+| <img src="images/available-videos.png" width="250" alt="Video selection screen"> | <img src="images/video-preview.png" width="250" alt="Video preview and binarizer"> | <img src="images/successful-process.png" width="250" alt="Processing status"> |
+| Video selection screen | Video preview and live binarizer | Processing status and results |
+
+
+<br />
+<hr>
+<br />
+
+## **BACK END (EXPRESS SERVER)**
+
+### 1. Enter the server directory and install dependencies:
+
+```
+cd server
+npm install
+```
+
+### 2. Create a .env file inside the server directory IMPORTANT!:
+
+- These variables configure the server port, video directory, CSV output directory, and Java processor.
+```
+PORT=3000
+VIDEO_DIR=./videos
+CSV_OUTPUT_DIR=./outputs
+JAR_PATH=../processor/target/my-java-project-1.0-SNAPSHOT-jar-with-dependencies.jar
+```
+
+### 3. Prepare the video and output directories:
+
+- Still within the server directory 
+```
+ <br />mkdir -p videos outputs<br />
+ Place any .mp4 videos you want to process inside server/videos/.<br /><br />
+```
+### 4. Start the Express server:
+
+```
+npm run dev
+```
+
+
+> The server should be available at:<br />
+> http://localhost:3000<br /><br />
+> You can verify the server is running at:<br />
+> http://localhost:3000/health<br />
+
+<br />
+<hr>
+<br />
+
+## **JAVA PROCESSOR**
+
+### 1. Build the Java processor using Maven:
+
+- navigate to the processor folder first i use the example of "cdprocessor" here it may be different for you if you change the folder name!
+
+```
+cd processor
+mvn clean package
+```
+
+> This compiles the Java project and creates an executable JAR with its dependencies. <br />
+> The generated JAR will be located at: <em>processor/target/my-java-project-1.0-SNAPSHOT-jar-with-dependencies.jar</em> <br />
