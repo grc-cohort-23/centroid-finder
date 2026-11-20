@@ -8,37 +8,31 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: processor
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '23'
+          # Reuse downloaded Maven dependencies (JavaCV is large) between runs.
+          cache: 'maven'
 
-      - name: Compile
+      # Maven compiles src/main/java and src/test/java, downloads JavaCV,
+      # and runs every JUnit test. It fails the job if any test fails.
+      - name: Compile and run tests
+        run: mvn -B test
+
+      - name: Verify test count
         run: |
-          mkdir -p src
-          javac -cp lib/junit-platform-console-standalone-6.0.3.jar src/*.java
-
-      - name: Run and Verify Tests
-        run: |
-          # Ensure that the pipeline fails if any command fails.
-          set -o pipefail
-          # Run tests and tee output to both the console and a file.
-          java -jar lib/junit-platform-console-standalone-6.0.3.jar -cp src --scan-classpath | tee test-results.txt
-          # Capture the exit code of the java command.
-          exit_code=${PIPESTATUS[0]}
-          if [ $exit_code -ne 0 ]; then
-            echo "❌ Unit tests failed with exit code $exit_code."
-            exit $exit_code
-          fi
-
-          # Extract the number of tests run from the output.
-          TEST_COUNT=$(grep -oP '\d+(?= tests found)' test-results.txt | head -n 1)
+          # Add up "Tests run: N" from each test class's report.
+          TEST_COUNT=$(awk -F'[:,]' '/^Tests run:/ { sum += $2 } END { print sum + 0 }' target/surefire-reports/*.txt)
           MIN_TESTS=15
 
           if [ "$TEST_COUNT" -lt "$MIN_TESTS" ]; then
