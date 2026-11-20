@@ -25,16 +25,22 @@ Other testing improvements?
  ## improving error handling
 What parts of your code are brittle?
 - implementation that is redundant 
+- Naming issue could make the code break if having any typo
 Where could you better be using exceptions?
 Where can you better add input validation to check invalid input?
+- I think it should be where hex color at Argument Parser, we dont know if it alaways 6 hex digits, or whole number
 How can you better be resolving/logging/surfacing errors? Hint: almost any place you're using "throws Exception" or "catch(Exception e)" should likely be improved to specify the specific types of exceptions that might be thrown or caught.
+- more details when throwing and specific/cleaner and make sure front end shows it. I will double check more thorughly.
 Other error handling improvements?
 
 ## writing documentation
 What portions of your code are missing Javadoc/JSdoc for the methods/classes?
+- quite a few are half done or badly done. I will fix it
 What documentation could be made clearer or improved?
 Are there sections of dead code that are commented out?
+- no dead code but could make it neater
 Where would be the most important places to add documentation to make your code easier to read?
+- Must be at the top? or right before the method or action.
 
 ## Other documentation improvements?
 improving performance (optional)
@@ -51,3 +57,4 @@ What parts of the code do you think might be causing them?
 Other bug fix improvements?
 other
 Any other improvements in general you could make?
+- Could be css or front end.
