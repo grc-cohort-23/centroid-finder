@@ -137,3 +137,50 @@ Centroid - the center point of a group, calculated by averaging all pixel coordi
 RGB - the red, green, and blue values that make up a color.
 Euclidean distance - the straight-line distance between two points in 3D color space.
 CSV - a file format where rows are separated by newlines and values are separated by commas.
+
+
+
+
+
+//TO DO
+[x] update gitignore to ignore target directory
+
+
+1. Create the video branch
+[x] Create and switch to the video branch
+[x] Make a small README change
+[x] Commit and push the branch to GitHub
+[x] Have teammates fetch and switch to video
+
+2. Restructure your project for Maven
+[x] Create or update pom.xml
+[x] Move Java source files into src/main/java
+[x] Move JUnit tests into src/test/java
+[x] Set ImageSummaryApp as the main class in pom.xml
+[x] Make sure the package names and folders match
+[x] Remove lib/ jar (Maven downloads JUnit now)
+[x] Update GitHub workflow and README to use mvn
+
+3. Test your Maven project
+[x] Run the existing image-processing application with Maven
+[x] Confirm binarized.png and groups.csv are generated
+[x] Run mvn test and verify the tests pass
+
+4. Research video-processing libraries
+[x] Research at least three Java video libraries
+[x] Create options.md
+[x] Write pros and cons for each in your own words
+[x] Discuss which library to try with teammates
+
+5. Experiment with a video library
+[x] Add the selected library as a dependency in pom.xml
+[x] Create a new Java class for experimenting
+[x] Use a small sample MP4 video
+[x] Try reading video metadata (duration, dimensions, etc.)
+[x] Try extracting video frames
+[x] Switch libraries and experiment again if needed
+
+6. Submit your assignment
+[] Push all changes and experiments to the video branch
+[x] Create a NEW pull request from video
+[x] Submit the pull request URL
