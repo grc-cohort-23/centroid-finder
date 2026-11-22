@@ -53,3 +53,5 @@ Other bug fix improvements?
 Any other improvements in general you could make?
 
 -One open issue: the plan notes at serverPlan.md:130 that job records are shared through Neon, but each result CSV is saved only on the laptop that ran the JAR. A teammate could see your job marked "done" but not have the file on their machine.
+
+-having a centroid that could possibly track heat signatures in camera systems? Or even having it be able to read live feed..
