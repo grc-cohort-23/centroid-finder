@@ -14,6 +14,7 @@
 
 - How can you make things simpler, more-usable, and easier to maintain?
 - Other refactoring improvements?
+    move tests to a separate folder(for example called tests) for consistency with Java in the server/src folder... its organized that way in the processor folder
 
 # Adding tests
 What portions of your code are untested / only lightly tested?
