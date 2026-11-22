@@ -52,6 +52,7 @@ What documentation could be made clearer or improved?
 Are there sections of dead code that are commented out?
     some of our experiment java classes like JavaCVExperiment.java technically nothing calls it.. its from a earlier version of the code. the extractedFrame.png is just kind of laying around...
 Where would be the most important places to add documentation to make your code easier to read?
+    I think as long as the ReadMe.md is clear for new users / developers our documentation would be considered up to par
 Other documentation improvements?
     
     We dont have anu JSdocs for the methods and classes. We have comments only.
