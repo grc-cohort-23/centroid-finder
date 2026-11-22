@@ -10,6 +10,7 @@
     Could not find any unused files 
 
 - Where would additional Java interfaces be appropriate?
+    ImageCentroidTracker and CSVOutputWriter 
     
 
 - How can you make things simpler, more-usable, and easier to maintain?
