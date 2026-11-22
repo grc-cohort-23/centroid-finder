@@ -45,6 +45,8 @@ Other error handling improvements?
 
 # Writing documentation
 What portions of your code are missing Javadoc/JSdoc for the methods/classes?
+    looks like none of our servers typscript contains JSdoc...
+    ImageCentroidTracker should have javadoc for sure...
 What documentation could be made clearer or improved?
 Are there sections of dead code that are commented out?
 Where would be the most important places to add documentation to make your code easier to read?
