@@ -48,6 +48,7 @@ What portions of your code are missing Javadoc/JSdoc for the methods/classes?
     looks like none of our servers typscript contains JSdoc...
     ImageCentroidTracker should have javadoc for sure...
 What documentation could be made clearer or improved?
+    could definitely update our readme to be more accurate to the updates and or add notes on recent updates that have no readme setup at all.. it seems to be missing notes on .env example, running the server and tests, installing ffmpeg, and would probably be good to have a list of endpoints
 Are there sections of dead code that are commented out?
 Where would be the most important places to add documentation to make your code easier to read?
 Other documentation improvements?
