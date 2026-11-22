@@ -10,7 +10,10 @@
     Could not find any unused files 
 
 - Where would additional Java interfaces be appropriate?
-    
+    ImageCentroidTracker -> CentroidTracker Interface
+    CSVOutputWriter -> ResultWriter Interface
+    ParallelFrameProcessor -> FrameProcessor
+
 
 - How can you make things simpler, more-usable, and easier to maintain?
 - Other refactoring improvements?
