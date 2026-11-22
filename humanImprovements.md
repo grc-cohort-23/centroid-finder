@@ -30,8 +30,15 @@ What parts of your code are brittle?
     a bad threshold gives 500 instead of 400.
 
 Where could you better be using exceptions?
+    CsvOutputwriter , imageSummaryApp
+
 Where can you better add input validation to check invalid input?
+    index.ts, imageSummaryapp
+
 How can you better be resolving/logging/surfacing errors? Hint: almost any place you're using "throws Exception" or "catch(Exception e)" should likely be improved to specify the specific types of exceptions that might be thrown or caught.
+
+    imageSummaryApp has catch(exception e) that would need to be replaced
+
 Other error handling improvements?
 
 # Writing documentation
