@@ -1,8 +1,17 @@
 # Refactoring code
 - What improvements can you make to the design/architecture of your code?
+    The code is organized in folders and files
+    There are a few csv outside of the code 
 - How can you split up large methods or classes into smaller components?
+    The java methods are in main -> java -> centroidfinder
+    Typescript functions are stored in server folder
+
 - Are there unused files/methods that can be removed?
+    Could not find any unused files 
+
 - Where would additional Java interfaces be appropriate?
+    
+
 - How can you make things simpler, more-usable, and easier to maintain?
 - Other refactoring improvements?
 
