@@ -17,26 +17,25 @@
     move tests to a separate folder(for example called tests) for consistency with Java in the server/src folder... its organized that way in the processor folder
 
 # Adding tests
-What portions of your code are untested / only lightly tested?
-Where would be the highest priority places to add new tests?
-Other testing improvements?
+- What portions of your code are untested / only lightly tested? Where would be the highest priority places to add new tests?
+- Other testing improvements?
      neonJobStore only has a few tests.
 
 # Improving error handling
-What parts of your code are brittle?
+- What parts of your code are brittle?
     The typscript is a bit brittle 
     Dropped database connection can crash the whole server.
     The pg Pool has no error listener, so a dropped Neon connection can crash the server
 
     a bad threshold gives 500 instead of 400.
 
-Where could you better be using exceptions?
+- Where could you better be using exceptions?
     CsvOutputwriter , imageSummaryApp
 
-Where can you better add input validation to check invalid input?
+- Where can you better add input validation to check invalid input?
     index.ts, imageSummaryapp
 
-How can you better be resolving/logging/surfacing errors? Hint: almost any place you're using "throws Exception" or "catch(Exception e)" should likely be improved to specify the specific types of exceptions that might be thrown or caught.
+- How can you better be resolving/logging/surfacing errors? Hint: almost any place you're using "throws Exception" or "catch(Exception e)" should likely be improved to specify the specific types of exceptions that might be thrown or caught.
 
     imageSummaryApp has catch(exception e) that would need to be replaced
 
@@ -48,6 +47,12 @@ What documentation could be made clearer or improved?
 Are there sections of dead code that are commented out?
 Where would be the most important places to add documentation to make your code easier to read?
 Other documentation improvements?
+    
+    We dont have anu JSdocs for the methods and classes. We have comments only.
+    ImageCentroidTracker, DfsBinaryGroupFinder, EuclideanColorDistance do not have javadocs 
+    ReadMe server needs to be updated.
+    Did not find any commented out code.
+    Update read me and add jsdoc to each method/function/class
 
 # Improving performance (optional)
 What parts of your code / tests run particularly slowly?
