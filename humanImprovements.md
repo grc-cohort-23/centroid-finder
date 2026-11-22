@@ -20,9 +20,16 @@
 What portions of your code are untested / only lightly tested?
 Where would be the highest priority places to add new tests?
 Other testing improvements?
+     neonJobStore only has a few tests.
 
 # Improving error handling
 What parts of your code are brittle?
+    The typscript is a bit brittle 
+    Dropped database connection can crash the whole server.
+    The pg Pool has no error listener, so a dropped Neon connection can crash the server
+
+    a bad threshold gives 500 instead of 400.
+
 Where could you better be using exceptions?
 Where can you better add input validation to check invalid input?
 How can you better be resolving/logging/surfacing errors? Hint: almost any place you're using "throws Exception" or "catch(Exception e)" should likely be improved to specify the specific types of exceptions that might be thrown or caught.
