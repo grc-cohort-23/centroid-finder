@@ -70,5 +70,63 @@ import org.junit.jupiter.api.Test;
             finder.findConnectedGroups(image));
     }
  
+@Test
+public void testEmptyImage() {
+    int[][] image = {};
 
+    assertThrows(IllegalArgumentException.class,
+        () -> finder.findConnectedGroups(image));
+}
+
+@Test
+public void testEmptyRow() {
+    int[][] image = {{}};
+
+    assertThrows(IllegalArgumentException.class,
+        () -> finder.findConnectedGroups(image));
+}
+
+@Test
+public void testPixelGreaterThanOne() {
+    int[][] image = {{0, 1, 2}};
+
+    assertThrows(IllegalArgumentException.class,
+        () -> finder.findConnectedGroups(image));
+}
+
+@Test
+public void testNegativePixel() {
+    int[][] image = {{0, -1, 1}};
+
+    assertThrows(IllegalArgumentException.class,
+        () -> finder.findConnectedGroups(image));
+}
+
+@Test
+public void testAllOnes() {
+    int[][] image = {
+        {1, 1, 1},
+        {1, 1, 1},
+        {1, 1, 1}
+    };
+
+    assertEquals(
+        List.of(group(9, 1, 1)),
+        finder.findConnectedGroups(image)
+    );
+}
+
+@Test
+public void testTiesBrokenByYDescending() {
+    int[][] image = {
+        {1},
+        {0},
+        {1}
+    };
+
+    assertEquals(
+        List.of(group(1, 0, 2), group(1, 0, 0)),
+        finder.findConnectedGroups(image)
+    );
+}
 }
