@@ -4,8 +4,7 @@ const config = require("./src/config");
 const createApp = require("./src/app");
 const { JobStore, createProcessorRunner, makeThumbnail } = require("./src/services");
 
-// Make sure the results folder exists
-fs.mkdirSync(config.resultsDir, { recursive: true });
+// Make sure the results and jobs folders exist
 fs.mkdirSync(config.resultsDir, { recursive: true });
 fs.mkdirSync(config.jobsDir, { recursive: true });
 
