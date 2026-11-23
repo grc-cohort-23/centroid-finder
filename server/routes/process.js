@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { spawn } from 'child_process';
 import { access } from 'fs/promises';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { config } from '../config.js';
 import { isSafeFilename, isValidColor, isValidThreshold } from '../lib/validate.js';
 import { saveJob, getJob, updateJob } from '../lib/jobStore.js';
+import { runJob } from '../lib/jobRunner.js';
 
 const router = Router();
 
@@ -42,39 +42,11 @@ router.post('/process/:filename', async (req, res) => {
       createdAt: new Date().toISOString(),
     });
 
-    let stderrOutput = '';
-    const child = spawn(
-      'java',
-      ['-jar', config.jarPath, videoPath, outputPath, targetColor, threshold],
-      { detached: true, stdio: ['ignore', 'ignore', 'pipe'] }
-    );
+    // Hand off spawn + exit handling to jobRunner so this route stays focused
+    // on validation and responding. HTTP behavior is identical: 202 fires before
+    // the child process exits.
+    runJob({ jobId, jarPath: config.jarPath, videoPath, outputPath, targetColor, threshold });
 
-    child.stderr.on('data', (chunk) => { stderrOutput += chunk.toString(); });
-
-    child.on('error', async (err) => {
-      await updateJob(jobId, { status: 'error', error: `Error processing video: ${err.message}` })
-        .catch(console.error);
-    });
-
-    child.on('exit', async (code) => {
-      try {
-        let hasCsv = true;
-        await access(outputPath).catch(() => { hasCsv = false; });
-        if (code === 0 && hasCsv) {
-          await updateJob(jobId, { status: 'done', result: `/results/${jobId}.csv` });
-        } else {
-          const detail = stderrOutput.trim() || 'the processor did not produce a result';
-          await updateJob(jobId, {
-            status: 'error',
-            error: `Error processing video: ${detail}`,
-          });
-        }
-      } catch (err) {
-        console.error('Could not update job', jobId, err);
-      }
-    });
-
-    child.unref();
     res.status(202).json({ jobId });
   } catch (err) {
     res.status(500).json({ error: 'Error starting job' });
