@@ -92,3 +92,5 @@ git mv src/*.java src/main/java/
 - Anything gives out video frames one at a time
 - empty Optional? mean video is finished
 - Mentioned AutoCloseble (searching up b4 do anything)
+
+Main idea: A small React and Java app where a user picks a video, tunes the color and threshold while watching the result live, then sends the job to your server and tracks it until the CSV is ready.
