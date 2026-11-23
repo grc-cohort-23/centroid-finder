@@ -381,5 +381,6 @@ describe("GET /process/:jobId/status", () => {
 
     expect(res.status).toBe(404);
     expect(res.body).toEqual({ error: "Job ID not found" });
+    
   });
 });
