@@ -1,11 +1,16 @@
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.NoSuchElementException;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Tests for {@link FfmpegVideoFrameGrabber} that decode the real fixture video
@@ -60,5 +65,34 @@ public class FfmpegVideoFrameGrabberTest {
             }
             assertFalse(grabber.hasNext());
         }
+    }
+
+    // Asking for a frame after the video is exhausted is a programming error, not an I/O error
+    @Test
+    void nextFrame_afterLastFrame_throwsNoSuchElementException() throws Exception {
+        try (FfmpegVideoFrameGrabber grabber = new FfmpegVideoFrameGrabber(fixtureVideoPath())) {
+            while (grabber.hasNext()) {
+                grabber.nextFrame();
+            }
+            assertThrows(NoSuchElementException.class, grabber::nextFrame);
+        }
+    }
+
+    // Opening a video that doesn't exist throws an IOException from the constructor
+    @Test
+    void constructor_missingFile_throwsIOException(@TempDir Path tempDir) {
+        String missing = tempDir.resolve("missing.mp4").toString();
+
+        IOException e = assertThrows(IOException.class, () -> new FfmpegVideoFrameGrabber(missing));
+        assertTrue(e.getMessage().contains(missing));
+    }
+
+    // Opening a file that isn't a video throws an IOException from the constructor
+    @Test
+    void constructor_notAVideo_throwsIOException(@TempDir Path tempDir) throws IOException {
+        Path notAVideo = tempDir.resolve("notes.mp4");
+        Files.writeString(notAVideo, "plain text pretending to be a video");
+
+        assertThrows(IOException.class, () -> new FfmpegVideoFrameGrabber(notAVideo.toString()));
     }
 }
