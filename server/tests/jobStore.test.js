@@ -61,3 +61,6 @@ test("jobs don't affect each other", async () => {
 
   expect((await store.find("job-2")).status).toBe("processing");
 });
+test("each job's log file sits next to its JSON file", () => {
+  expect(store.logFileFor("job-1")).toBe(path.join(tempDir, "job-1.log"));
+});
