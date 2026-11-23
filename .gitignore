@@ -33,5 +33,13 @@ target/
 *.mov
 *.avi
 *.mkv
-
 node_modules/
+
+# Server data (videos and generated results)
+videos/
+userOutput/
+
+jobs/
+results/
+
+*.env
