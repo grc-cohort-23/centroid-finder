@@ -206,9 +206,9 @@ This will make it easier to change file locations without modifying the Express 
 
 ## 11. Known Limits
 
-- If the server stops while a job is running, that job stays `processing` forever.
+- If the server stops while a job is running, the job can't be tracked anymore. When the server starts again, it marks every job still `processing` as `error` ("server restarted"), so clients don't wait forever.
+- Because the JAR runs detached, it keeps running after the server stops and may still write a complete CSV, even though the job now says `error`.
 - Processing the same video twice at the same time is fine only because each job writes its own CSV named `<jobId>.csv`.
-- Job files survive a server restart, but running processes and their exit callbacks do not.
 - The failure reason is only as clear as Java's last error line. The full output is in `jobs/<jobId>.log`.
 
 ## 12. Implementation Order
@@ -241,7 +241,7 @@ Later:
 - Later: file uploads with multer.
 
 ## 14. Testing
-- Unit tests (Jest + Supertest): 45 tests for all 4 endpoints, JobStore, and the
+- Unit tests (Jest + Supertest): 51 tests for all 4 endpoints, JobStore, and the
   JAR runner, using a fake JAR runner, a fake "java" script, and a fake thumbnail
   maker. Run with `npm test` in server/.
 - Postman: all 4 endpoints tested with the real JAR and ensantina.mp4.
