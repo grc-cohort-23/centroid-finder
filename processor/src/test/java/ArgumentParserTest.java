@@ -90,4 +90,29 @@ public class ArgumentParserTest {
         assertThrows(IllegalArgumentException.class,
             () -> parser.parse(new String[] {existingFile(), "out.csv", "FFA200", "-5"}));
     }
+
+    @Test
+public void testMaximumThresholdAllowed() throws IOException {
+    VideoProcessorArgs args = parser.parse(new String[] {
+        existingFile(), "out.csv", "FFA200", "442"
+    });
+
+    assertEquals(442, args.threshold());
+}
+
+@Test
+public void testThresholdAboveMaximum() throws IOException {
+    assertThrows(IllegalArgumentException.class,
+        () -> parser.parse(new String[] {
+            existingFile(), "out.csv", "FFA200", "443"
+        }));
+}
+
+@Test
+public void testExtremelyLargeThreshold() throws IOException {
+    assertThrows(IllegalArgumentException.class,
+        () -> parser.parse(new String[] {
+            existingFile(), "out.csv", "FFA200", "999999999"
+        }));
+}
 }
