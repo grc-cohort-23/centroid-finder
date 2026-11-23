@@ -19,6 +19,7 @@ const { JobStore } = require("../src/services");
 let tempDir;
 let videosDir;
 let resultsDir;
+let jobsDir;
 let jobStore;
 
 /*
@@ -57,7 +58,7 @@ beforeEach(() => {
   tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "salamander-test-"));
   videosDir = path.join(tempDir, "videos");
   resultsDir = path.join(tempDir, "results");
-  const jobsDir = path.join(tempDir, "jobs");
+  jobsDir = path.join(tempDir, "jobs");
   fs.mkdirSync(videosDir);
   fs.mkdirSync(resultsDir);
   fs.mkdirSync(jobsDir);
@@ -180,6 +181,14 @@ describe("POST /process/:filename", () => {
     expect(args.threshold).toBe("80");
   });
 
+  test("gives the JAR a log file in the jobs folder", async () => {
+    const res = await request(buildApp())
+      .post("/process/ensantina.mp4")
+      .query({ targetColor: "5C0005", threshold: "80" });
+
+    expect(processorCalls[0].args.logPath).toBe(path.join(jobsDir, `${res.body.jobId}.log`));
+  });
+
   test("saves the job as processing", async () => {
     const res = await request(buildApp())
       .post("/process/ensantina.mp4")
@@ -298,6 +307,22 @@ describe("GET /process/:jobId/status", () => {
     expect(res.body).toEqual({
       status: "error",
       error: "Error processing video: processor exited with code 1",
+    });
+  });
+
+  test("shows the JAR's own reason when it gives one", async () => {
+    const app = buildApp();
+    const jobId = await startJob(app);
+
+    // The real runner turns the JAR's last stderr line into the error message
+    processorCalls[0].onFinish(new Error("Invalid threshold: 999 (exit code 1)"));
+    await waitForSave();
+
+    const res = await request(app).get(`/process/${jobId}/status`);
+
+    expect(res.body).toEqual({
+      status: "error",
+      error: "Error processing video: Invalid threshold: 999 (exit code 1)",
     });
   });
 

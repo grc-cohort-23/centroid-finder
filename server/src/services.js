@@ -1,5 +1,6 @@
 // The parts of the server that do the actual work.
 const fs = require("fs/promises");
+const { openSync, closeSync } = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
 
@@ -13,6 +14,11 @@ class JobStore {
 
   fileFor(jobId) {
     return path.join(this.jobsDir, `${jobId}.json`);
+  }
+
+  // Where the JAR's error output (stderr) for this job is saved
+  logFileFor(jobId) {
+    return path.join(this.jobsDir, `${jobId}.log`);
   }
 
   async save(jobId, job) {
@@ -41,16 +47,15 @@ class JobStore {
 // ============================================================
 /**
  * Runs: java -jar <jarPath> <videoPath> <resultPath> <targetColor> <threshold>
+ * Everything the JAR prints to stderr is saved in logPath.
  * Returns right away; calls onFinish(error) later, when the JAR is done.
- * error is null if the JAR succeeded.
+ * error is null if the JAR succeeded. If it failed, error.message is the
+ * last line the JAR printed (its reason), or the exit code if it printed nothing.
+ *
+ * command is "java" in real use; tests pass a fake script instead.
  */
-function createProcessorRunner(jarPath) {
-  return function runProcessor({ videoPath, resultPath, targetColor, threshold }, onFinish) {
-    const child = spawn("java", ["-jar", jarPath, videoPath, resultPath, targetColor, String(threshold)], {
-      detached: true,  // runs on its own, separate from the server
-      stdio: "ignore", // don't connect its input/output to the server
-    });
-
+function createProcessorRunner(jarPath, command = "java") {
+  return function runProcessor({ videoPath, resultPath, targetColor, threshold, logPath }, onFinish) {
     // "exit" and "error" can both fire; only report once
     let finished = false;
     const finish = (error) => {
@@ -59,15 +64,52 @@ function createProcessorRunner(jarPath) {
       onFinish(error);
     };
 
-    child.on("exit", (code) => {
-      finish(code === 0 ? null : new Error(`processor exited with code ${code}`));
+    let logFile;
+    let child;
+    try {
+      // The JAR writes its stderr straight into this file, so the reason
+      // for a failure is kept even though the JAR runs on its own
+      logFile = openSync(logPath, "w");
+      child = spawn(command, ["-jar", jarPath, videoPath, resultPath, targetColor, String(threshold)], {
+        detached: true,                          // runs on its own, separate from the server
+        stdio: ["ignore", "ignore", logFile],    // no input, ignore output, errors -> log file
+      });
+    } catch (err) {
+      // the log file couldn't be created
+      finish(err);
+      return;
+    } finally {
+      // the JAR has its own copy of the file now, so the server can close its copy
+      if (logFile !== undefined) closeSync(logFile);
+    }
+
+    child.on("exit", async (code) => {
+      if (code === 0) {
+        finish(null);
+        return;
+      }
+      const reason = await lastLineOf(logPath);
+      finish(new Error(reason ? `${reason} (exit code ${code})` : `processor exited with code ${code}`));
     });
     // java couldn't start at all
-    child.on("error", (err) => finish(err)); 
+    child.on("error", (err) => finish(err));
 
     // don't make the server wait for the JAR
-    child.unref(); 
+    child.unref();
   };
+}
+
+// Returns the last non-blank line of a file, or null if there isn't one
+async function lastLineOf(file) {
+  let text;
+  try {
+    text = await fs.readFile(file, "utf8");
+  } catch {
+    // no log to read: the caller falls back to the exit code
+    return null;
+  }
+  const lines = text.split("\n").map((line) => line.trim()).filter((line) => line !== "");
+  return lines.length > 0 ? lines[lines.length - 1] : null;
 }
 
 // ============================================================

@@ -119,10 +119,10 @@ Express will:
 1. Validate (in `routes.js`) the filename (it must be in the videos directory), the color (exactly 6 hex digits, `#` removed), and the threshold (a whole number, 0 or higher). Bad input gets a 400 response.
 2. Generate a unique job ID using UUID.
 3. Create a job status record with status `processing`.
-4. Start the Java videoProcessor JAR using Node.js child_process (`spawn` with an array of arguments, never one shell string), in detached mode with `stdio: "ignore"`, and call `unref()` so the request never waits for the JAR.
+4. Start the Java videoProcessor JAR using Node.js child_process (`spawn` with an array of arguments, never one shell string), in detached mode, and call `unref()` so the request never waits for the JAR. Its input and output are ignored, but its error output (stderr) goes to a log file, `jobs/<jobId>.log`.
 5. Pass the video path, output CSV path (`results/<jobId>.csv`), color, and threshold to Java.
 6. Immediately return `202` with `{ "jobId": "..." }`.
-7. When the JAR exits, update the job: exit code 0 means `done`, anything else means `error`. Because stdio is ignored, Express cannot see Java's error text, so the failure reason is the exit code (for example "exit code 1").
+7. When the JAR exits, update the job: exit code 0 means `done`, anything else means `error`. The failure reason is the last line Java printed to its log, plus the exit code (for example "Invalid threshold: 999 (exit code 1)"). If Java printed nothing, the reason is just the exit code.
 
 ### GET /process/:jobId/status
 
@@ -132,7 +132,7 @@ Express will:
 - Find the job using its job ID (404 if it doesn't exist).
 - If processing, return `{ "status": "processing" }`.
 - If done, return `{ "status": "done", "result": "/results/<jobId>.csv" }`.
-- If error, return `{ "status": "error", "error": "<exit code reason>" }`.
+- If error, return `{ "status": "error", "error": "Error processing video: <Java's reason> (exit code N)" }`.
 
 ### Downloading the result
 
@@ -144,7 +144,7 @@ The Express server uses Node.js child_process to start the Java videoProcessor J
 
 The server passes the video path, the output CSV path, the target color, and the threshold as command-line arguments.
 
-The process runs detached with ignored stdio, so Express does not wait for it. Express still listens for the exit event to learn the exit code. The exit code decides the job status. The JAR itself never writes job status.
+The process runs detached, so Express does not wait for it. Its stderr is written straight into `jobs/<jobId>.log` (a file, not a pipe, so the JAR doesn't depend on the server staying connected). Express still listens for the exit event to learn the exit code. The exit code decides the job status, and the log's last line explains a failure. The JAR itself never writes job status.
 
 ## 8. File Storage
 
@@ -209,7 +209,7 @@ This will make it easier to change file locations without modifying the Express 
 - If the server stops while a job is running, that job stays `processing` forever.
 - Processing the same video twice at the same time is fine only because each job writes its own CSV named `<jobId>.csv`.
 - Job files survive a server restart, but running processes and their exit callbacks do not.
-- The failure reason is only an exit code, since Java's output is ignored.
+- The failure reason is only as clear as Java's last error line. The full output is in `jobs/<jobId>.log`.
 
 ## 12. Implementation Order
 
@@ -241,7 +241,8 @@ Later:
 - Later: file uploads with multer.
 
 ## 14. Testing
-- Unit tests (Jest + Supertest): 34 tests for all 4 endpoints and JobStore,
-  using a fake JAR runner and fake thumbnail maker. Run with `npm test` in server/.
+- Unit tests (Jest + Supertest): 45 tests for all 4 endpoints, JobStore, and the
+  JAR runner, using a fake JAR runner, a fake "java" script, and a fake thumbnail
+  maker. Run with `npm test` in server/.
 - Postman: all 4 endpoints tested with the real JAR and ensantina.mp4.
   The collection is in server/postman_collection.json.

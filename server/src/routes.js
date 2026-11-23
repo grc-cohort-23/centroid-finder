@@ -113,7 +113,13 @@ function createRoutes({ videosDir, resultsDir, jobStore, runProcessor, makeThumb
        * When it finishes, mark the job "done", or "error" if it failed.
        */
       runProcessor(
-        { videoPath, resultPath: path.join(resultsDir, resultName), targetColor: color, threshold },
+        {
+          videoPath,
+          resultPath: path.join(resultsDir, resultName),
+          targetColor: color,
+          threshold,
+          logPath: jobStore.logFileFor(jobId),
+        },
         (error) => {
           const changes = error
             ? { status: "error", error: `Error processing video: ${error.message}` }
