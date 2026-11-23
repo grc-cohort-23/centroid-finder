@@ -40,6 +40,37 @@ class JobStore {
     const job = await this.find(jobId);
     await this.save(jobId, { ...job, ...changes });
   }
+
+  /*
+   * Run when the server starts. A job still marked "processing" was cut off
+   * by the last shutdown: the server that was waiting for its JAR is gone,
+   * so nothing would ever mark it done. Marks each one as an error with the
+   * given message and returns their IDs.
+   */
+  async failUnfinished(errorMessage) {
+    const files = await fs.readdir(this.jobsDir);
+    const changed = [];
+
+    for (const file of files) {
+      if (path.extname(file) !== ".json") continue; // skip the .log files
+
+      const jobId = path.basename(file, ".json");
+      let job;
+      try {
+        job = await this.find(jobId);
+      } catch (err) {
+        // one broken file shouldn't stop the server from starting
+        console.warn(`Skipping job file ${file}: ${err.message}`);
+        continue;
+      }
+
+      if (job.status === "processing") {
+        await this.update(jobId, { status: "error", error: errorMessage });
+        changed.push(jobId);
+      }
+    }
+    return changed;
+  }
 }
 
 // ============================================================
