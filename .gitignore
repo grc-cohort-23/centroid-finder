@@ -40,5 +40,6 @@ videos/
 userOutput/
 
 jobs/
+results/
 
 *.env

@@ -1,7 +1,0 @@
-{
-  "status": "done",
-  "video": "test-red-square.mp4",
-  "targetColor": "ff0000",
-  "threshold": 100,
-  "result": "/results/50d51da7-0008-4f6f-94ea-44c790057217.csv"
-}
