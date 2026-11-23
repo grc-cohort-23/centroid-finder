@@ -45,14 +45,17 @@ Where would be the most important places to add documentation to make your code 
 ## Other documentation improvements?
 improving performance (optional)
 What parts of your code / tests run particularly slowly?
-What speed improvements would most make running / maintaining your code better?
+What speed improvements would most make running / maintaining your code better? 
+- maybe make the frames skip some? instead of every single frame.. skip every five so it still accurate, just less redundant
 Other performance improvements?
 hardening security (optional)
 What packages / images are out of date / have security issues?
+- We have some images out of date
 Where could you have better input validation in your code to prevent malicious use?
 Other security improvements?
 bug fixes (optional)
 What bugs do you know exist?
+- videoProcessor and videoprocessor
 What parts of the code do you think might be causing them?
 Other bug fix improvements?
 other
