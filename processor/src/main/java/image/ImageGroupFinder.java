@@ -1,3 +1,4 @@
+package image;
 import java.util.List;
 import java.awt.image.BufferedImage;
 
