@@ -4,6 +4,17 @@ import { requestJson, submitSettings } from '../api'
 
 const pollInterval = 1000
 
+/**
+ * Controls for starting a full processing job on the selected video using the
+ * current settings, and (presumably) showing the job's progress/result.
+ *
+ * TODO: document states (e.g. idle / submitting / running / done / error) and
+ * any callbacks once confirmed from the implementation.
+ *
+ * @param {Object} props
+ * @param {ProcessingSettings} props.settings - Video filename, target color, and tolerance to process with.
+ * @returns {JSX.Element}
+ */
 export default function ProcessingJob({ settings }) {
   const [job, setJob] = useState({ status: 'idle' })
   const submission = useRef(null)
