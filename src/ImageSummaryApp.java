@@ -30,27 +30,21 @@ import javax.imageio.ImageIO;
  */
 public class ImageSummaryApp {
     public static void main(String[] args) {
-        if (args.length < 3) {
-            System.out.println("Usage: java ImageSummaryApp <input_image> <hex_target_color> <threshold>");
+        if (!validateArguments(args)) {
             return;
         }
         
         String inputImagePath = args[0];
         String hexTargetColor = args[1];
-        int threshold = 0;
-        try {
-            threshold = Integer.parseInt(args[2]);
-        } catch (NumberFormatException e) {
-            System.err.println("Threshold must be an integer.");
+        Integer threshold = parseThreshold(args[2]);
+
+        if (threshold == null) {
             return;
         }
         
-        BufferedImage inputImage = null;
-        try {
-            inputImage = ImageIO.read(new File(inputImagePath));
-        } catch (Exception e) {
-            System.err.println("Error loading image: " + inputImagePath);
-            e.printStackTrace();
+        BufferedImage inputImage = loadImage(inputImagePath);
+
+        if (inputImage == null) {
             return;
         }
         
@@ -89,6 +83,40 @@ public class ImageSummaryApp {
         List<Group> groups = groupFinder.findConnectedGroups(inputImage);
         
         // Write the groups information to a CSV file "groups.csv".
+        writeGroupsCsv(groups);
+    }
+
+    private static boolean validateArguments(String[] args) {
+        if (args.length < 3) {
+            System.out.println("Usage: java ImageSummaryApp <input_image> <hex_target_color> <threshold>");
+            return false;
+        }
+
+        return true;
+    }
+
+
+    private static Integer parseThreshold(String value) {
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            System.err.println("Threshold must be an integer.");
+            return null;
+        }
+    }
+
+
+    private static BufferedImage loadImage(String inputImagePath) {
+        try {
+            return ImageIO.read(new File(inputImagePath));
+        } catch (Exception e) {
+            System.err.println("Error loading image: " + inputImagePath);
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private static void writeGroupsCsv(List<Group> groups) {
         try (PrintWriter writer = new PrintWriter("groups.csv")) {
             for (Group group : groups) {
                 writer.println(group.toCsvRow());
@@ -99,4 +127,6 @@ public class ImageSummaryApp {
             e.printStackTrace();
         }
     }
-}
+
+} 
+
