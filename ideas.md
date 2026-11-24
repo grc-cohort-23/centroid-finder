@@ -8,3 +8,4 @@
 - tracking multiple centroids
 - air traffic control idea
 - tracking in a game. Like a chess move and then the other player is able to make their moves.. maybe even able to track any moves you are able to make?
+- user accounts
