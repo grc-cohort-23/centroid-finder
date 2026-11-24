@@ -59,6 +59,21 @@ describe("GET /api/videos", () => {
         expect(response.status).toBe(500);
         expect(response.body).toEqual({ error: "Error reading video directory" });
     });
+
+    it("sends 200 with an empty list when the folder has no videos", async () => {
+        // Arrange: a new folder with nothing in it
+        const emptyFolder = fs.mkdtempSync(path.join(os.tmpdir(), "empty-"));
+        const app = createApp(makeConfig(emptyFolder));
+
+        // Act
+        const response = await request(app).get("/api/videos");
+
+        // Assert
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual([]);
+
+        fs.rmSync(emptyFolder, { recursive: true });
+    });
 });
 
 describe("GET /thumbnail/:filename", () => {
