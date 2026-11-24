@@ -25,28 +25,32 @@ export default function VideoFrame({
 
     canvas.width = img.width
     canvas.height = img.height
-    ctx.drawImage(img, 0, 0)
-    const imgData = ctx.getImageData(0, 0, img.width, img.height)
-    const data = imgData.data
+    try {
+      ctx.drawImage(img, 0, 0)
+      const imgData = ctx.getImageData(0, 0, img.width, img.height)
+      const data = imgData.data
 
-    const cleanHex = hexColor.replace('#', '')
-    const targetR = parseInt(cleanHex.slice(0, 2), 16) || 0
-    const targetG = parseInt(cleanHex.slice(2, 4), 16) || 0
-    const targetB = parseInt(cleanHex.slice(4, 6), 16) || 0
-    const thresholdSq = tolerance * tolerance
+      const cleanHex = hexColor.replace('#', '')
+      const targetR = parseInt(cleanHex.slice(0, 2), 16) || 0
+      const targetG = parseInt(cleanHex.slice(2, 4), 16) || 0
+      const targetB = parseInt(cleanHex.slice(4, 6), 16) || 0
+      const thresholdSq = tolerance * tolerance
 
-    for (let i = 0; i < data.length; i += 4) {
-      const dr = data[i] - targetR
-      const dg = data[i + 1] - targetG
-      const db = data[i + 2] - targetB
-      const distSq = dr * dr + dg * dg + db * db
-      const val = distSq < thresholdSq ? 255 : 0
-      data[i] = val
-      data[i + 1] = val
-      data[i + 2] = val
-      data[i + 3] = 255
+      for (let i = 0; i < data.length; i += 4) {
+        const dr = data[i] - targetR
+        const dg = data[i + 1] - targetG
+        const db = data[i + 2] - targetB
+        const distSq = dr * dr + dg * dg + db * db
+        const val = distSq < thresholdSq ? 255 : 0
+        data[i] = val
+        data[i + 1] = val
+        data[i + 2] = val
+        data[i + 3] = 255
+      }
+      ctx.putImageData(imgData, 0, 0)
+    } catch {
+      // Fallback silently if canvas pixel manipulation fails
     }
-    ctx.putImageData(imgData, 0, 0)
   }, [liveSettings])
 
   useEffect(() => {
