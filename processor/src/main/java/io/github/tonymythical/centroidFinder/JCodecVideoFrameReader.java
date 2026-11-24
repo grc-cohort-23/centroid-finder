@@ -1,54 +1,62 @@
 package io.github.tonymythical.centroidFinder;
+
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import org.jcodec.common.io.NIOUtils;
+import org.jcodec.api.FrameGrab;
 import org.jcodec.api.JCodecException;
-import java.awt.image.BufferedImage;
+import org.jcodec.common.io.NIOUtils;
+import org.jcodec.common.io.SeekableByteChannel;
 import org.jcodec.common.model.Picture;
 import org.jcodec.scale.AWTUtil;
 
-import org.jcodec.api.FrameGrab;
-import org.jcodec.common.io.SeekableByteChannel;
-
+/**
+ * Video frame reader implementation powered by JCodec for decoding MP4 and MOV files.
+ */
 public class JCodecVideoFrameReader implements VideoFrameReader {
 
     private final SeekableByteChannel channel;
     private final FrameGrab grabber;
 
-    //Constructor goes here
+    /**
+     * Constructs a JCodecVideoFrameReader for the specified video file.
+     *
+     * @param videoFile the video file to open and decode
+     * @throws IOException if an I/O error occurs opening the channel
+     * @throws JCodecException if the video cannot be parsed or demuxed
+     */
     public JCodecVideoFrameReader(File videoFile) throws IOException, JCodecException {
         this.channel = NIOUtils.readableChannel(videoFile);
-
         try {
             this.grabber = FrameGrab.createFrameGrab(channel);
-
         } catch (IOException | JCodecException e) {
             channel.close();
             throw e;
         }
-
     }
 
+    /**
+     * Decodes and returns the next video frame converted to a BufferedImage.
+     *
+     * @return the next decoded frame, or null if end of stream is reached
+     * @throws IOException if an error occurs during decoding
+     */
     @Override
     public BufferedImage nextFrame() throws IOException {
-        //get hte next frame from the video
         Picture picture = grabber.getNativeFrame();
-        //check if there are no more frames 
         if (picture == null) {
             return null;
         }
-        //convert image to BufferedImage
-        BufferedImage image = AWTUtil.toBufferedImage(picture);
-        //return converted image
-        return image;
+        return AWTUtil.toBufferedImage(picture);
     }
 
+    /**
+     * Closes the underlying seekable byte channel.
+     *
+     * @throws IOException if an error occurs while closing the channel
+     */
     @Override
     public void close() throws IOException {
         channel.close();
-
     }
-
-
-    
 }

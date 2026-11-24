@@ -1,26 +1,30 @@
 package io.github.tonymythical.centroidFinder;
+
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.awt.image.BufferedImage;
-import javax.imageio.ImageIO;
 import java.util.List;
-
+import javax.imageio.ImageIO;
 import org.jcodec.api.FrameGrab;
 import org.jcodec.common.model.Picture;
 import org.jcodec.scale.AWTUtil;
 
+/**
+ * Generates an initial preview and binarized frame from a video for client tuning.
+ */
 public class VideoPreviewApp {
     public static void main(String[] args) {
-        if (args.length < 4) {
-            System.err.println("Usage: VideoPreviewApp <inputVideo> <outputImage> <targetColor> <threshold> [originalImage]");
+        CliArgumentParser config;
+        try {
+            config = CliArgumentParser.parsePreviewArgs(args);
+        } catch (IllegalArgumentException e) {
+            System.err.println(e.getMessage());
             System.exit(1);
             return;
         }
 
-        File videoFile = new File(args[0]);
-        File outputFile = new File(args[1]);
-        int targetColor = Integer.parseInt(args[2].replace("#", ""), 16);
-        int threshold = Integer.parseInt(args[3]);
+        File videoFile = new File(config.inputPath());
+        File outputFile = new File(config.outputPath());
 
         try {
             Picture picture = FrameGrab.getFrameAtSec(videoFile, 0.0);
@@ -30,23 +34,17 @@ public class VideoPreviewApp {
             }
 
             BufferedImage frame = AWTUtil.toBufferedImage(picture);
-
             ColorDistanceFinder distanceFinder = new EuclideanColorDistance();
-
-            DistanceImageBinarizer binarizer = new DistanceImageBinarizer(distanceFinder, targetColor, threshold);
-
+            DistanceImageBinarizer binarizer = new DistanceImageBinarizer(distanceFinder, config.targetColor(), config.threshold());
             int[][] binaryArray = binarizer.toBinaryArray(frame);
-
             BufferedImage binaryFrame = binarizer.toBufferedImage(binaryArray);
 
             DfsBinaryGroupFinder groupFinder = new DfsBinaryGroupFinder();
-
             List<Group> groups = groupFinder.findConnectedGroups(binaryArray);
 
-
             writePng(binaryFrame, outputFile);
-            if (args.length >= 5) {
-                writePng(frame, new File(args[4]));
+            if (config.originalImagePath() != null) {
+                writePng(frame, new File(config.originalImagePath()));
             }
             System.out.printf("Frame size: %d,%d%n", frame.getWidth(), frame.getHeight());
 
@@ -54,19 +52,17 @@ public class VideoPreviewApp {
                 System.out.println("Centroid: -1, -1");
             } else {
                 Group largestGroup = groups.get(0);
-
                 int x = largestGroup.centroid().x();
                 int y = largestGroup.centroid().y();
-
                 System.out.println("Centroid: " + x + "," + y);
             }
 
             System.out.println("Preview frame saved to: " + outputFile);
 
         } catch (Exception e) {
-           System.err.println("Error generating preview: " + e.getMessage());
+            System.err.println("Error generating preview: " + e.getMessage());
             e.printStackTrace();
-           System.exit(1);
+            System.exit(1);
         }
     }
 

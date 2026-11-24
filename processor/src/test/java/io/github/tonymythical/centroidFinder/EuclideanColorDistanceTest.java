@@ -112,4 +112,11 @@ public class EuclideanColorDistanceTest {
         int b = 0x64965A;
         assertEquals(Math.sqrt(100 * 100 + 100 * 100 + 10 * 10), finder.distance(a, b), DELTA);
     }
+
+    @Test
+    void distanceSquaredMatchesSquaredDistance() {
+        int a = 0x000000;
+        int b = 0x030400; // (3, 4, 0) -> distance is 5.0, distanceSquared is 25.0
+        assertEquals(25.0, finder.distanceSquared(a, b), DELTA);
+    }
 }

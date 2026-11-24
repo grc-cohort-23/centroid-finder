@@ -10,7 +10,7 @@ import withRequestStatus from './withRequestStatus'
 
 const previewDelay = 300
 
-function PreviewFrames({ preview, showMarker }) {
+function PreviewFrames({ preview, showMarker, liveSettings, isUpdating }) {
   const { originalUrl, previewUrl, width, height, centroid } = preview
   const hasCentroid = centroid.x >= 0 && centroid.y >= 0
   const frameProps = { width, height, centroid: showMarker && hasCentroid ? centroid : null }
@@ -19,7 +19,15 @@ function PreviewFrames({ preview, showMarker }) {
     <>
       <div className="frameContainer">
         <VideoFrame key={originalUrl} title="Original frame" imageUrl={originalUrl} {...frameProps} />
-        <VideoFrame key={previewUrl} title="Binarized frame" imageUrl={previewUrl} {...frameProps} />
+        <VideoFrame
+          key={previewUrl}
+          title="Binarized frame"
+          imageUrl={previewUrl}
+          originalUrl={originalUrl}
+          liveSettings={liveSettings}
+          isUpdating={isUpdating}
+          {...frameProps}
+        />
       </div>
       <p role="status">
         {hasCentroid ? `Centroid (${centroid.x}, ${centroid.y})` : 'No centroid found with these settings.'}
@@ -54,7 +62,9 @@ export default function PreviewPage({ filename, threshold, setThreshold, targetC
     }
   }, [settings])
 
-  const currentResult = result?.settings === settings ? result : { status: 'loading' }
+  const currentResult = result
+    ? { ...result, isUpdating: result.settings !== settings }
+    : { status: 'loading' }
 
   return (
     <section id="center">
@@ -76,7 +86,12 @@ export default function PreviewPage({ filename, threshold, setThreshold, targetC
         />
       </div>
 
-      <PreviewWithStatus {...currentResult} showMarker={showMarker} loadingMessage="Generating preview…" />
+      <PreviewWithStatus
+        {...currentResult}
+        showMarker={showMarker}
+        liveSettings={settings}
+        loadingMessage="Generating preview…"
+      />
       <ProcessingJob settings={settings} />
     </section>
   )
