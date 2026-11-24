@@ -1,0 +1,7 @@
+- Documentation (prob javadoc) for VideoSummaryApp, JavaCVFrameSource, VideoSummarizer, LargestCentroidLocator needs to be written.
+- Unit testing for frontend (it has none)
+- Unit testing for backend (it has none)
+- Delete dead experimental classes (we did that lol)
+- Delete ImageSummaryApp (not being used)
+- Improve VideoSummaryApp, VideoSummarizer, JavaCVFrameSource Exception throws.
+- Refactor centroid.js: split into different js files and keep centroid as entry point only.

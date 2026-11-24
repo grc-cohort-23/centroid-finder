@@ -1,0 +1,3 @@
+- Merge all pull requests so to make code more readable
+- Delete all notes after done with final waves
+- 

@@ -1,0 +1,11 @@
+- Server side verification to prevent negative threshold from being passed in.
+- Refactor server.js to check valid csv path before job start
+- (PERFORMANCE) replaced visited with a boolean[][]
+- (PERFORMANCE) replace toBinaryArray() getRGB per pixel with a mass pixel grab
+- Refactor System.err and System.out to be properly reflected.
+- Add a named constant for a dead group.
+- Document exit codes
+- Stale comments (VideoSummaryApp)
+- 
+- Split centroid server logic into 4 different js files: colorDistance.js(EuclideanColorDistance),
+ binarizer.js(DistanceImageBinazer), group.js(Group), groupFinder.js(DfsBinaryGroupFinder). Keep centroid.js to analyze frame and re-exports.
