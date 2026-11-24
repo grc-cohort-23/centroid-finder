@@ -13,8 +13,11 @@ const router = Router();
  * POST /process/:filename?targetColor=RRGGBB&threshold=N
  *
  * Validates the request, creates a job record with status `"processing"`,
- * delegates process spawning to `runJob`, and returns immediately so the
- * client can poll for the result.
+ * starts the Java processor (`java -jar videoprocessor.jar`) as a detached
+ * background process, and returns 202 immediately so the client can poll
+ * `GET /process/:jobId/status` for the result. A job only becomes `"done"` when
+ * the JAR exits with code 0 AND its CSV file exists; anything else is an
+ * `"error"` carrying the processor's stderr text.
  *
  * @param {import('express').Request}  req
  * @param {import('express').Response} res
