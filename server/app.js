@@ -1,3 +1,8 @@
+/**
+ * Express application factory.
+ * Mounts static directories for videos and results, then wires up the three
+ * route modules. Import this in index.js (production) or tests (supertest).
+ */
 import express from 'express';
 import { config } from './config.js';
 import videosRouter from './routes/videos.js';

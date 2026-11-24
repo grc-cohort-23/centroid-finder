@@ -1,69 +1,195 @@
 # centroid-finder
 
-## *DO THIS FIRST* Wave 0: AI Rules 
-AI is *NOT ALLOWED* for generating implementations of the classes.
-AI is allowed for helping you make test cases.
+A video-processing pipeline that tracks a colored object (originally a salamander) through a video. A **Java processor** finds the centroid of the largest group of pixels near a target color in sampled video frames and writes the positions to a CSV file. An **Express server** exposes that over HTTP and tracks each job's state. The companion React app, [centroid-finder-frontend](https://github.com/sabinMas/centroid-finder-frontend), is the UI: it lists videos, previews a frame live while you pick a color and threshold, and starts a processing job through this server's API.
 
-Don't have it just create the tests mindlessly for you though! Make sure you're actively involved in making the tests.
+## Course AI rules (read first)
 
-DO NOT MIX HUMAN AND AI COMMITS.
-EVERY COMMIT THAT USES AI MUST START WITH THE COMMIT MESSAGE "AI Used" AND IT MUST ONLY CREATE/ALTER TEST FILES
+This is graded coursework, so these rules apply to every commit, human or AI:
 
-For this wave, please have each partner make a commit below with their username acknowledging that they understand the rules, according to the following format:
+- AI is **not allowed** to generate the implementations of the classes. AI may help write test cases, but a person must be actively involved in writing them.
+- **Do not mix human and AI work in one commit.**
+- **Every AI-assisted commit message must start with `AI Used`.**
+- The original assignment text, including these rules in full, is kept in [docs/part1-instructions.md](docs/part1-instructions.md).
 
-"I, YOUR_GITHUB_USERNAME, understand that AI is ONLY to be used for tests, and that every commit that I use AI for must start with 'AI Used'"
+## How it works
 
-## Wave 1: Understand
-Read through ImageSummaryApp in detail with your partner. Understand what each part does. This will involve looking through and reading ALL of the other classes records and interfaces. This will take a long time, but it is worth it! Do not skimp on this part, you will regret it! Also look at the sampleInput and sampleOutput folders to understand what comes in and what goes out.
+When you `POST` a video filename to `/process/:filename`, the server creates a job record and immediately starts the Java processor as a background process (`java -jar videoprocessor.jar`). The processor samples one frame every 0.5 seconds, turns each frame into a black-and-white image (pixels within the threshold distance of the target color become white), groups the connected white pixels, and writes the centroid of the largest group to a CSV file in `RESULTS_DIR`. The server tracks the job in `JOBS_DIR` and updates its status when the process exits. Poll `/process/:jobId/status` until you get `"done"` and a `result` path, or `"error"` with a reason.
 
-As you read through the files, take notes in notes.md to help you and your partner understand. Make frequent commits to your notes.
+## Prerequisites
 
+- **Java 21** (`java -version`)
+- **Maven 3.8+** (`mvn -version`)
+- **Node 20 LTS or newer** (`node -v`)
+- **ffmpeg on your `PATH`** (`ffmpeg -version`). The server uses it to make thumbnails (`GET /thumbnail/:filename`). The processor JAR bundles its own video decoding through JavaCV, so ffmpeg is not needed to process a video.
 
-## Wave 2: Implement DfsBinaryGroupFinder
-This class takes in a binary image array and finds the connected groups. It will look very similar in many ways to the explorer problem you did for DFS! You'll need to understand the Group record to do this well.
+## Getting started
 
-Consider STARTING with the unit tests. Remember, you can use AI to help with the unit tests but NOT the implementation. Any AI commit must start with the message "AI Used"
+### 1. Build the processor JAR
 
-MAKE SURE YOU MAKE THOROUGH UNIT TESTS.
-
-## Wave 3: Implement EuclideanColorDistance
-Implement EuclideanColorDistance. You may consider adding a helper method for converting a hex int into R, G, and B components.
-
-Again, consider starting with unit tests. You may consider using WolframAlpha to help you get correct expected values.
-
-MAKE SURE YOU MAKE THOROUGH UNIT TESTS.
-
-## Wave 4: Implement DistanceImageBinarizer
-To do this you will need to research `java.awt.image.BufferedImage`. In particular, make sure to understand `getRGB` and `setRGB`. When creating a new image, you can use the below to start the instance:
-
-```
-new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+```sh
+cd processor
+mvn -DskipTests package
+cd ..
 ```
 
-Note that a lot of this class will be calling methods in BinaryGroupFinder and ColorDistanceFinder!
+Output: `processor/target/videoprocessor.jar`
 
-MAKE SURE YOU MAKE THOROUGH UNIT TESTS. Consider asking the AI to teach you about mocks and fakes in unit testing and how they may be helpful here.
+### 2. Configure the server
 
-HINT: `getRGB` returns a 32-bit AARRGGBB color (includes alpha channel). However, ColorDistanceFinder expects the colors to come in RRGGBB format (no alpha channel (most significant 8 bits set to 0)). What can you do to make this conversion happen?
-
-## Wave 5: Implement BinarizingImageGroupFinder
-This implementation will be relatively short! It will mostly be calling methods in ImageBinarizer and BinaryGroupFinder.      
-
-MAKE SURE YOU MAKE THOROUGH UNIT TESTS. Consider asking the AI to teach you about mocks and fakes in unit testing and how they may be helpful here. I recommend NOT using any external library other than JUnit. If the AI wants to use another external library, consider asking it not to and to make stubs instead.
-          
-## Wave 6: Validation
-To validate your code is working, make sure you're in the centroid-finder directory and run the below command:
-
-```
-javac -cp lib/junit-platform-console-standalone-6.0.3.jar src/*.java && java -cp src ImageSummaryApp sampleInput/squares.jpg FFA200 164
+```sh
+cp .env.example .env
+# edit .env if needed. Every variable has a default
 ```
 
-This will compile your files and run the main method in ImageSummaryApp against the sample image with a target color of orange and a threshold of 164. It should binarized.png and groups.csv which should match the corresponding files in the sampleOutput directory.
+### 3. Install dependencies and start the server
 
-Once you have confirmed it is working, clean up your code, make sure it's committed and pushed, and make a PR to submit. Great job!
+```sh
+cd server
+npm ci
+node index.js
+```
 
-## Optional Wave 7: Enhancements?
-If you want to, you can make a new branch to start experimenting. See if you can come up with a better color distance method (hint: look up perceptual color spaces). See if you can make your code more efficient or mor suited to spotting salamanders! Experiment with other test files. PLEASE MAKE SURE THIS IS IN A SEPARATE BRANCH FROM YOUR SUBMISSION.
+The server listens on `http://localhost:3000` by default. There is no `npm start` script yet, so use `node index.js`. To use the UI, start the [frontend](https://github.com/sabinMas/centroid-finder-frontend) too. It runs on `http://localhost:5180` and forwards API calls to port 3000.
 
+## Configuration
 
+All options are read from `.env` in the repo root (see `.env.example`). Every variable has a default.
 
+| Variable | Default (no `.env`) | `.env.example` value | Description |
+|---|---|---|---|
+| `PORT` | `3000` | `3000` | Port the server listens on. |
+| `VIDEOS_DIR` | `videos/` | `processor/sampleInput` | Directory of input videos. Also served statically at `/videos/`. |
+| `RESULTS_DIR` | `results/` | `results` | Directory where the processor writes `.csv` output. Served at `/results/`. |
+| `JOBS_DIR` | `jobs/` | `jobs` | Directory where per-job JSON state files are stored. |
+| `JAR_PATH` | `processor/target/videoprocessor.jar` | `processor/target/videoprocessor.jar` | Path to the processor JAR that the server runs. |
+
+Relative paths are resolved from the repo root. The server creates `RESULTS_DIR` and `JOBS_DIR` on start-up.
+
+## API
+
+| Method | Path | Success | Errors |
+|---|---|---|---|
+| `GET` | `/api/videos` | `200` JSON array of filenames (`.mp4 .mov .avi .mkv .webm` only) | `500` |
+| `GET` | `/thumbnail/:filename` | `200` `image/jpeg` of the first frame | `400` bad filename, `404` not found, `500` ffmpeg failed |
+| `POST` | `/process/:filename?targetColor=RRGGBB&threshold=N` | `202` `{ "jobId": "<uuid>" }` | `400` bad or missing parameters, `404` video not found, `500` could not start |
+| `GET` | `/process/:jobId/status` | `200` job state (see below) | `404` unknown job, `500` |
+| `GET` | `/results/<jobId>.csv` | `200` the CSV file (static) | `404` |
+
+Every error response is JSON of the form `{ "error": "<message>" }`.
+
+Example responses:
+
+```jsonc
+// GET /api/videos
+["salamander1.mp4", "salamander2.mov"]
+
+// POST /process/salamander1.mp4?targetColor=FFA200&threshold=164   (202)
+{ "jobId": "3f2b7c0e-8a0b-4a53-9d54-6f6b6b2d6c11" }
+
+// POST with a bad color                                              (400)
+{ "error": "Invalid filename, targetColor (RRGGBB hex) or threshold (whole number)." }
+
+// POST for a video that does not exist                               (404)
+{ "error": "Video not found" }
+
+// GET /process/<jobId>/status, while the processor runs
+{ "status": "processing" }
+
+// ...when it finished successfully
+{ "status": "done", "result": "/results/3f2b7c0e-8a0b-4a53-9d54-6f6b6b2d6c11.csv" }
+
+// ...when it failed (the text is the processor's stderr)
+{ "status": "error", "error": "Error processing video: Error opening video: videos/missing.mp4 (Failed to open video: videos/missing.mp4)" }
+
+// GET /process/not-a-real-id/status                                  (404)
+{ "error": "Job ID not found" }
+```
+
+The routes, query parameters, status codes and JSON shapes above are a contract with the frontend. Don't change them without changing the frontend too.
+
+## The processor (Java)
+
+Command line (the argument order is fixed, because the server relies on it):
+
+```sh
+java -jar processor/target/videoprocessor.jar <input_video> <output_csv> <hex_target_color> <threshold>
+# example
+java -jar processor/target/videoprocessor.jar processor/sampleInput/ball.mp4 out.csv FF0000 100
+```
+
+**CSV format.** One `timestamp,x,y` row per sampled frame: the timestamp is in seconds from the start of the video with 2 decimals, and `x,y` is the centroid of the largest matching group in pixels. If no pixel matches in a frame, the row is `-1,-1`:
+
+```csv
+0.00,320,240
+0.50,331,244
+1.00,-1,-1
+```
+
+**Exit codes.** The server treats any non-zero code as a failed job and stores whatever the processor wrote to stderr as the job's error text.
+
+| Code | Meaning |
+|---|---|
+| `0` | Success, the CSV was written |
+| `1` | Wrong number of arguments |
+| `2` | The threshold is not an integer |
+| `3` | The target color is not a 6-digit `RRGGBB` hex string |
+| `4` | The video could not be opened (missing file, or not a video) |
+| `5` | Decoding the video's frames failed part way through |
+| `6` | The output CSV could not be written |
+
+`ImageSummaryApp` is the older single-image version of the pipeline from Part 1 (`java -cp ... ImageSummaryApp <image> <hex_target_color> <threshold>`). Its output files, `binarized.png` and `groups.csv`, are in `processor/sampleOutput/`.
+
+## Running the tests
+
+```sh
+# Java processor (JUnit 5 via Maven)
+cd processor && mvn -B test
+
+# Node server (Node's built-in node:test runner, no extra framework)
+cd server && npm ci && npm test
+```
+
+GitHub Actions runs both suites in parallel on every pull request to `main` and on pushes to `main`. See [`.github/workflows/run-tests.yml`](.github/workflows/run-tests.yml). `processor/sampleInput/ball.mp4` is a tiny test video that is checked in on purpose (other videos are gitignored) and is used by the end-to-end test.
+
+## Project structure
+
+```
+centroid-finder/
+├── processor/                       # Java 21 Maven project (default package)
+│   ├── pom.xml                      #   builds target/videoprocessor.jar
+│   ├── src/main/java/               #   VideoSummaryApp, ImageSummaryApp, and the pipeline classes
+│   ├── src/test/java/               #   JUnit tests, including VideoSummaryAppEndToEndTest
+│   ├── sampleInput/                 #   ball.mp4 (test fixture), squares.jpg
+│   └── sampleOutput/                #   expected output for squares.jpg
+├── server/                          # Express API (Node, ES modules)
+│   ├── index.js                     #   start-up: creates the results/jobs dirs, listens
+│   ├── app.js                       #   builds the Express app (used by index.js and tests)
+│   ├── config.js                    #   reads .env and resolves paths
+│   ├── routes/
+│   │   ├── videos.js                #   GET /api/videos
+│   │   ├── thumbnail.js             #   GET /thumbnail/:filename
+│   │   └── process.js               #   POST /process/:filename, GET /process/:jobId/status
+│   ├── lib/
+│   │   ├── jobStore.js              #   read and write job JSON files
+│   │   ├── jobRunner.js             #   starts java -jar and tracks how it ends
+│   │   └── validate.js              #   input validators
+│   └── test/
+│       ├── routes.test.js           #   HTTP tests (supertest)
+│       ├── validate.test.js
+│       └── jobRunner.test.js        #   uses a fake child process, no Java needed
+├── .github/workflows/run-tests.yml  # CI
+├── docs/part1-instructions.md       # the original Part 1 assignment text
+├── .env.example
+├── videos/  results/  jobs/         # runtime folders (gitignored)
+└── *.md                             # plan, notes and improvement write-ups
+```
+
+`server/lib/jobRunner.js` and its test arrive with the job-runner refactor (B-R3). This README describes the project once that has merged.
+
+## Docs and planning
+
+- [TASKS.md](TASKS.md): the Wave 5 task breakdown and who owns which files
+- [priorityImprovements.md](priorityImprovements.md): the improvements we chose and the backlog
+- [robotImprovements.md](robotImprovements.md) and [humanImprovements.md](humanImprovements.md): the Wave 3 and Wave 2 improvement reviews
+- [plan.md](plan.md), [serverPlan.md](serverPlan.md), [notes.md](notes.md): earlier planning notes
+- [docs/part1-instructions.md](docs/part1-instructions.md): the original Part 1 assignment

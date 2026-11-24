@@ -9,6 +9,24 @@ import { runJob } from '../lib/jobRunner.js';
 
 const router = Router();
 
+/**
+ * POST /process/:filename?targetColor=RRGGBB&threshold=N
+ *
+ * Validates the request, creates a job record with status `"processing"`,
+ * starts the Java processor (`java -jar videoprocessor.jar`) as a detached
+ * background process, and returns 202 immediately so the client can poll
+ * `GET /process/:jobId/status` for the result. A job only becomes `"done"` when
+ * the JAR exits with code 0 AND its CSV file exists; anything else is an
+ * `"error"` carrying the processor's stderr text.
+ *
+ * @param {import('express').Request}  req
+ * @param {import('express').Response} res
+ * @returns {Promise<void>}
+ *   202 — `{ jobId: "<uuid>" }`
+ *   400 — `{ error: "..." }` for missing or invalid query params / filename
+ *   404 — `{ error: "Video not found" }` if the file does not exist
+ *   500 — `{ error: "Error starting job" }` on unexpected failure
+ */
 router.post('/process/:filename', async (req, res) => {
   const { filename } = req.params;
   const { targetColor, threshold } = req.query;
@@ -53,6 +71,20 @@ router.post('/process/:filename', async (req, res) => {
   }
 });
 
+/**
+ * GET /process/:jobId/status
+ *
+ * Returns the current state of a job created by POST /process.
+ *
+ * @param {import('express').Request}  req
+ * @param {import('express').Response} res
+ * @returns {Promise<void>}
+ *   200 — `{ status: "processing" }` while the JAR is running
+ *         `{ status: "done", result: "/results/<id>.csv" }` on success
+ *         `{ status: "error", error: "<message>" }` on failure
+ *   404 — `{ error: "Job ID not found" }` if the jobId is unknown
+ *   500 — `{ error: "Error fetching job status" }` on unexpected failure
+ */
 router.get('/process/:jobId/status', async (req, res) => {
   try {
     const job = await getJob(req.params.jobId);

@@ -1,3 +1,14 @@
+/**
+ * Centralised configuration.
+ * Reads .env from the repo root and resolves every path relative to it so
+ * callers never need to know where the repo root is.
+ *
+ * @property {number|string} port      - HTTP port (default 3000)
+ * @property {string}        videosDir - Absolute path to the video input directory
+ * @property {string}        resultsDir - Absolute path to the CSV output directory
+ * @property {string}        jobsDir   - Absolute path to the per-job JSON state directory
+ * @property {string}        jarPath   - Absolute path to the processor JAR
+ */
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
