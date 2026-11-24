@@ -31,8 +31,12 @@ public class VideoProcessorApp {
             List<CentroidTimestampRecord> results = tracker.processVideo(videoFile);
             writer.writeRecords(config.outputPath(), results);
             System.out.println("Processing complete. CSV output saved to: " + config.outputPath());
-        } catch (Exception e) {
-            System.err.println("Error processing video: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("I/O error while processing video or writing CSV: " + e.getMessage());
+            e.printStackTrace();
+            System.exit(1);
+        } catch (JCodecException e) {
+            System.err.println("Could not decode video: " + e.getMessage());
             e.printStackTrace();
             System.exit(1);
         }
