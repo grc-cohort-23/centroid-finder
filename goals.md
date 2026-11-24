@@ -1,7 +1,28 @@
-Easy: Some small deliverable that meet the requirements that you are certain you can get done before the final day of the quarter. This should be small!
+# Goals
 
-Goal: Some significant deliverable you think you can probably get done before the end of the quarter. You don't have to be 100% certain, but it should be something you think you've got at least an 80% chance of getting done.
+Theme: **Motion analysis.** Right now our project finds where one colored object is in each frame. We want to turn that into understanding how things move: how fast, which way, and where several objects are heading.
 
-Stretch: Some large deliverable you think you might be able to get done before the end of the quarter. It should be something that's not completely out of the realm of possibility, but you think would be hard to do. It should be at the edge of your abilities.
+## Easy: Speed and direction
+For a tracked object, figure out how fast it is moving and which direction it is going in each frame.
+- New Java class that takes the `seconds,x,y` results and adds `speed` (pixels per second) and `direction` columns
+- Skip frames where the object wasn't found (no speed across a gap)
+- The API returns the new columns with the job results
+- The frontend shows the speed next to the video
 
-Impossible: Some ridiculously ambitious goal that would be cool but there's no way you can finish by the end of the quarter. This should be truly out there.
+## Goal: Track multiple objects at once
+Track several objects of the same color in one video and keep the same ID for each object from frame to frame.
+- Use the groups `DfsBinaryGroupFinder` already finds, instead of only keeping the largest one
+- Match each object to the closest object in the previous frame so its ID stays the same
+- Handle objects that leave the screen or show up partway through the video
+- Limit the number of objects (for example the top 3) to keep the CSV simple
+- The frontend draws each object's path in its own color
+
+## Stretch: Predict paths and warn about collisions
+Use each object's speed and direction to guess where it will be in the next few seconds, and warn when two objects are going to get too close.
+- Project each object's position forward using its current speed and direction
+- Flag a warning when two predicted positions come closer than a set distance
+- The API returns the warnings (time and which objects) with the job results
+- The frontend shows predicted paths and highlights warnings in red
+
+## Impossible: Real air traffic control
+A live system that tracks hundreds of planes from radar or camera feeds in real time, predicts every flight path, and sends safety alerts before planes get too close.
