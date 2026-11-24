@@ -1,69 +1,121 @@
 # centroid-finder
 
-## *DO THIS FIRST* Wave 0: AI Rules 
-AI is *NOT ALLOWED* for generating implementations of the classes.
-AI is allowed for helping you make test cases.
+A video-processing pipeline: a Java processor finds colored-pixel centroids in video frames; an Express server exposes it over HTTP and tracks job state.
 
-Don't have it just create the tests mindlessly for you though! Make sure you're actively involved in making the tests.
+## How it works
 
-DO NOT MIX HUMAN AND AI COMMITS.
-EVERY COMMIT THAT USES AI MUST START WITH THE COMMIT MESSAGE "AI Used" AND IT MUST ONLY CREATE/ALTER TEST FILES
+When you POST a video filename to `/process/:filename`, the server creates a job record and immediately spawns the Java processor as a background process (`java -jar videoprocessor.jar`). The processor scans each video frame, finds connected groups of pixels within the target color's threshold, and writes their centroids to a `.csv` file in `RESULTS_DIR`. The server tracks the job in `JOBS_DIR` and updates its status when the process exits. Poll `/process/:jobId/status` until you get `"done"` and a `result` path, or `"error"` with a reason.
 
-For this wave, please have each partner make a commit below with their username acknowledging that they understand the rules, according to the following format:
+## Prerequisites
 
-"I, YOUR_GITHUB_USERNAME, understand that AI is ONLY to be used for tests, and that every commit that I use AI for must start with 'AI Used'"
+- **Java 21** — `java -version`
+- **Maven 3.8+** — `mvn -version`
+- **Node 20 LTS** — `node -v`
+- **ffmpeg** (on `PATH`) — `ffmpeg -version`
 
-## Wave 1: Understand
-Read through ImageSummaryApp in detail with your partner. Understand what each part does. This will involve looking through and reading ALL of the other classes records and interfaces. This will take a long time, but it is worth it! Do not skimp on this part, you will regret it! Also look at the sampleInput and sampleOutput folders to understand what comes in and what goes out.
+## Getting started
 
-As you read through the files, take notes in notes.md to help you and your partner understand. Make frequent commits to your notes.
+### 1. Build the processor JAR
 
-
-## Wave 2: Implement DfsBinaryGroupFinder
-This class takes in a binary image array and finds the connected groups. It will look very similar in many ways to the explorer problem you did for DFS! You'll need to understand the Group record to do this well.
-
-Consider STARTING with the unit tests. Remember, you can use AI to help with the unit tests but NOT the implementation. Any AI commit must start with the message "AI Used"
-
-MAKE SURE YOU MAKE THOROUGH UNIT TESTS.
-
-## Wave 3: Implement EuclideanColorDistance
-Implement EuclideanColorDistance. You may consider adding a helper method for converting a hex int into R, G, and B components.
-
-Again, consider starting with unit tests. You may consider using WolframAlpha to help you get correct expected values.
-
-MAKE SURE YOU MAKE THOROUGH UNIT TESTS.
-
-## Wave 4: Implement DistanceImageBinarizer
-To do this you will need to research `java.awt.image.BufferedImage`. In particular, make sure to understand `getRGB` and `setRGB`. When creating a new image, you can use the below to start the instance:
-
-```
-new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+```sh
+cd processor
+mvn -DskipTests package
+cd ..
 ```
 
-Note that a lot of this class will be calling methods in BinaryGroupFinder and ColorDistanceFinder!
+Output: `processor/target/videoprocessor.jar`
 
-MAKE SURE YOU MAKE THOROUGH UNIT TESTS. Consider asking the AI to teach you about mocks and fakes in unit testing and how they may be helpful here.
+### 2. Configure the server
 
-HINT: `getRGB` returns a 32-bit AARRGGBB color (includes alpha channel). However, ColorDistanceFinder expects the colors to come in RRGGBB format (no alpha channel (most significant 8 bits set to 0)). What can you do to make this conversion happen?
-
-## Wave 5: Implement BinarizingImageGroupFinder
-This implementation will be relatively short! It will mostly be calling methods in ImageBinarizer and BinaryGroupFinder.      
-
-MAKE SURE YOU MAKE THOROUGH UNIT TESTS. Consider asking the AI to teach you about mocks and fakes in unit testing and how they may be helpful here. I recommend NOT using any external library other than JUnit. If the AI wants to use another external library, consider asking it not to and to make stubs instead.
-          
-## Wave 6: Validation
-To validate your code is working, make sure you're in the centroid-finder directory and run the below command:
-
-```
-javac -cp lib/junit-platform-console-standalone-6.0.3.jar src/*.java && java -cp src ImageSummaryApp sampleInput/squares.jpg FFA200 164
+```sh
+cp .env.example .env
+# edit .env if needed — all variables have defaults
 ```
 
-This will compile your files and run the main method in ImageSummaryApp against the sample image with a target color of orange and a threshold of 164. It should binarized.png and groups.csv which should match the corresponding files in the sampleOutput directory.
+### 3. Install server dependencies and start
 
-Once you have confirmed it is working, clean up your code, make sure it's committed and pushed, and make a PR to submit. Great job!
+```sh
+cd server
+npm ci
+npm start
+```
 
-## Optional Wave 7: Enhancements?
-If you want to, you can make a new branch to start experimenting. See if you can come up with a better color distance method (hint: look up perceptual color spaces). See if you can make your code more efficient or mor suited to spotting salamanders! Experiment with other test files. PLEASE MAKE SURE THIS IS IN A SEPARATE BRANCH FROM YOUR SUBMISSION.
+Server listens on `http://localhost:3000` by default.
 
+## Running tests
 
+### Java processor (Maven)
 
+```sh
+cd processor
+mvn -B test
+```
+
+### Node server
+
+```sh
+cd server
+npm test
+```
+
+Uses Node's built-in `node:test` runner; no additional test framework needed.
+
+GitHub Actions runs both suites in parallel on every pull request to `main`. See [`.github/workflows/run-tests.yml`](.github/workflows/run-tests.yml).
+
+## Configuration
+
+All options are read from `.env` in the repo root (see `.env.example`). Every variable has a default.
+
+| Variable | Default | Description |
+|---|---|---|
+| `PORT` | `3000` | Port the server listens on. |
+| `VIDEOS_DIR` | `videos/` | Directory of input video files. Served statically at `/videos/`. |
+| `RESULTS_DIR` | `results/` | Directory where the processor writes `.csv` output. Served at `/results/`. |
+| `JOBS_DIR` | `jobs/` | Directory where per-job JSON state files are stored. |
+| `JAR_PATH` | `processor/target/videoprocessor.jar` | Path to the processor JAR invoked by the server. |
+
+## API
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/videos` | Returns a JSON array of video filenames in `VIDEOS_DIR` (filters to `.mp4 .mov .avi .mkv .webm`). 200 `["a.mp4"]` \| 500 on directory error. |
+| `GET` | `/thumbnail/:filename` | First-frame JPEG thumbnail, generated by ffmpeg. 200 `image/jpeg` \| 400 bad filename \| 404 not found \| 500 ffmpeg error. |
+| `POST` | `/process/:filename?targetColor=RRGGBB&threshold=N` | Starts an async processing job. 202 `{"jobId":"<uuid>"}` \| 400 invalid params \| 404 video not found \| 500 on start failure. |
+| `GET` | `/process/:jobId/status` | Returns current job state: `{"status":"processing"}`, `{"status":"done","result":"/results/<id>.csv"}`, or `{"status":"error","error":"…"}`. 404 if jobId unknown. |
+
+## Project structure
+
+```
+centroid-finder/
+├── processor/                   # Java Maven project
+│   ├── src/                     #   source + tests
+│   ├── pom.xml
+│   └── target/videoprocessor.jar
+├── server/                      # Express API (Node)
+│   ├── app.js
+│   ├── config.js
+│   ├── index.js
+│   ├── routes/
+│   │   ├── videos.js            #   GET /api/videos
+│   │   ├── thumbnail.js         #   GET /thumbnail/:filename
+│   │   └── process.js           #   POST + GET /process/…
+│   ├── lib/
+│   │   ├── jobStore.js          #   read/write job JSON files
+│   │   ├── jobRunner.js         #   spawn java -jar, track exit
+│   │   └── validate.js          #   input validators
+│   └── test/
+│       └── jobRunner.test.js
+├── .github/workflows/run-tests.yml
+├── videos/                      # input video files (gitignored)
+├── results/                     # CSV output (gitignored)
+├── jobs/                        # per-job JSON state (gitignored)
+└── .env.example
+```
+
+## Docs & planning
+
+- [TASKS.md](TASKS.md) — Wave 5 task breakdown and ownership map
+- [plan.md](plan.md) — overall project plan
+- [serverPlan.md](serverPlan.md) — server architecture notes
+- [priorityImprovements.md](priorityImprovements.md) — backlog
+- [docs/part1-instructions.md](docs/part1-instructions.md) — original Part 1 assignment
