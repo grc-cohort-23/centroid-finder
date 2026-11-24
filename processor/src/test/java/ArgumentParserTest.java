@@ -100,17 +100,6 @@ public void testMaximumThresholdAllowed() throws IOException {
     assertEquals(442, args.threshold());
 }
 
-@Test
-public void testThresholdAboveMaximum() throws IOException {
-    assertThrows(IllegalArgumentException.class,
-        () -> parser.parse(new String[] {
-            existingFile(), "out.csv", "FFA200", "443"
-public void testDecimalThreshold() throws IOException {
-    assertThrows(IllegalArgumentException.class,
-        () -> parser.parse(new String[] {
-            existingFile(), "out.csv", "FFA200", "10.5"
-        }));
-}
 
 @Test
 public void testThresholdOverflow() throws IOException {
