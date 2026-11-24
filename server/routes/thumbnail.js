@@ -7,6 +7,21 @@ import { isSafeFilename } from '../lib/validate.js';
 
 const router = Router();
 
+/**
+ * GET /thumbnail/:filename
+ *
+ * Extracts the first frame of a video and streams it as a JPEG.
+ * Uses ffmpeg's `pipe:1` output to avoid writing a temp file.
+ *
+ * @param {import('express').Request}  req
+ * @param {import('express').Response} res
+ * @returns {Promise<void>}
+ *   200 — `image/jpeg` binary
+ *   400 — `{ error: "Invalid filename" }` if the name fails the safety check
+ *   404 — `{ error: "Video not found" }` if the file does not exist
+ *   500 — `{ error: "Error generating thumbnail" }` if ffmpeg fails or returns
+ *          no bytes
+ */
 router.get('/thumbnail/:filename', async (req, res) => {
   const { filename } = req.params;
 
