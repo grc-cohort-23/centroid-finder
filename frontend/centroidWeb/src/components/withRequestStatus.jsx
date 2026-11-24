@@ -1,5 +1,25 @@
 import { Alert, LinearProgress, Stack, Typography } from '@mui/material'
 
+/**
+ * Higher-order component that adds loading, error, and "refreshing" UI to a
+ * component whose data comes from an async request.
+ *
+ * The returned component accepts the wrapped component's props plus:
+ * - `status`: `'loading' | 'error' | 'ready'` (any other value is treated as ready).
+ *     - `loading` – renders `loadingMessage` and a progress bar; the wrapped component is NOT rendered.
+ *     - `error`   – renders `error` in an Alert; the wrapped component is NOT rendered.
+ *     - otherwise – renders the wrapped component.
+ * - `error`: message shown when `status === 'error'`.
+ * - `loadingMessage`: text shown (and used as the progress bar's aria-label) when loading.
+ * - `isUpdating`: when true, a thin progress bar overlays the wrapped component to
+ *   indicate a refresh. It is also forwarded to the wrapped component.
+ *
+ * All remaining props are passed through unchanged.
+ *
+ * @template P
+ * @param {React.ComponentType<P & {isUpdating?: boolean}>} Component - Component to wrap.
+ * @returns {React.ComponentType<P & {status: 'loading'|'error'|'ready', error?: string, loadingMessage?: string, isUpdating?: boolean}>}
+ */
 export default function withRequestStatus(Component) {
   return function WithRequestStatus({ status, error, loadingMessage, isUpdating, ...props }) {
     if (status === 'loading') {
