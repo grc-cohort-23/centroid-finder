@@ -22,7 +22,7 @@ Suggested improvements from AI reviews of the code (including GitHub Copilot), t
    - **Direction:** call `checkError()` before closing, and exit with 1 if it returns true.
 6. **Java: `ImageSummaryApp` hides its errors.**
    - It catches plain `Exception` in 3 places. Catch the specific exceptions instead.
-   - `ImageIO.read` returns `null` (it doesn't throw) for a file that isn't an image, so the next line crashes with a `NullPointerException`.
+   - `ImageIO.read` returns `null` (it doesn't throw) for a file that isn't an image, so the program crashes with a `NullPointerException` a few lines later, when it uses the image.
    - Bad arguments print a message and `return`, so the program still exits with code 0, as if it worked. The usage message also goes to `System.out` instead of `System.err`.
    - **Direction:** check for `null` after `ImageIO.read`, and exit with 1 on bad input like `VideoSummaryApp` does.
 7. **The server can crash or hang.**
@@ -49,7 +49,7 @@ Suggested improvements from AI reviews of the code (including GitHub Copilot), t
 
 - **Repeated code:**
   - `/thumbnail` and `/frame` both build ffmpeg commands.
-  - Every route repeats the same "basename + join with `videoDir`" step.
+  - `/thumbnail`, `/frame` and `/process` each repeat the same "basename + join with `videoDir`" step.
   - Moving each into one helper means one place to fix bugs like the `..` one.
 - **`app.ts`:** `/thumbnail` and `/api/videos` are still written directly in `app.ts`. Every other endpoint is its own `xRoute(config)` file, so move these two out to match.
 - **Java interfaces:**
@@ -71,7 +71,7 @@ Suggested improvements from AI reviews of the code (including GitHub Copilot), t
   - the "`onExit` runs twice" case
   - `finishJob` when the store throws
 - **Lightly tested:** `videoInfo.ts`, `ImageCentroidTracker` (2 tests), and `Group.compareTo` (no direct tests).
-- **`ImageCentroidTrackerTest` doesn't match the test style.** Its names (`returnsLargestGroupCentroid`, `returnsNegativeCoordinatesWhenNoGroupsFound`) aren't `method_condition_expectedResult`, and it has no Arrange / Act / Assert comments. Every other test file follows the style.
+- **`ImageCentroidTrackerTest` doesn't match the test style.** Its names (`returnsLargestGroupCentroid`, `returnsNegativeCoordinatesWhenNoGroupsFound`) aren't `method_condition_expectedResult`, and it has no Arrange / Act / Assert comments. It's the only Java test file with none (the server tests use `it("...")` sentences instead).
   - **Direction:** rename them (like `findCentroid_noGroups_returnsNegativeOnes`) and add the comments.
 - **CI (`.github/workflows/run-tests.yml`) only runs `mvn test`.**
   - Add a step for the server's Vitest tests. The `/thumbnail`, `/frame`, upload and details tests use real ffmpeg/ffprobe, so it would also need to install ffmpeg.
