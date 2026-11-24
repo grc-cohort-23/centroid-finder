@@ -37,6 +37,10 @@ We need to make sure it loads the input image using `ImageIO` and parses the hex
 
 `BinarizingImageGroupFinder`: Implements `ImageGroupFinder` by bridging the image binarizer and binary group finder, allowing raw `BufferedImage` inputs to be processed directly into sorted `Group` lists.
 
+Resolution Compressor
+
+ETA of video processing
+
 ## Yousif
 
 BinarizingImageGroupFinder implements ImageGroupFinder and coordinates ImageBinarizer and BinaryGroupFinder. Its purpose is to transform an input image into binary data, pass that data to the grouping component, and then give the resulting groups. This avoids duplicating the DFS or color-dinstance logic. It doesn't perform DFS or calculate color dinstances itself. it delegates these operations to other methods/components.
