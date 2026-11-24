@@ -4,8 +4,11 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+
 import javax.imageio.ImageIO;
+
 import org.jcodec.api.FrameGrab;
+import org.jcodec.api.JCodecException;
 import org.jcodec.common.model.Picture;
 import org.jcodec.scale.AWTUtil;
 
@@ -59,8 +62,13 @@ public class VideoPreviewApp {
 
             System.out.println("Preview frame saved to: " + outputFile);
 
-        } catch (Exception e) {
-            System.err.println("Error generating preview: " + e.getMessage());
+        } 
+        catch (IOException e) {
+            System.err.println("I/O error generating preview: " + e.getMessage());
+            e.printStackTrace();
+            System.exit(1);
+        } catch (JCodecException e) {
+            System.err.println("Could not decode video frame: " + e.getMessage());
             e.printStackTrace();
             System.exit(1);
         }
