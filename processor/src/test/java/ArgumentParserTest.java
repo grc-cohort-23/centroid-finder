@@ -90,4 +90,42 @@ public class ArgumentParserTest {
         assertThrows(IllegalArgumentException.class,
             () -> parser.parse(new String[] {existingFile(), "out.csv", "FFA200", "-5"}));
     }
+
+    @Test
+public void testDecimalThreshold() throws IOException {
+    assertThrows(IllegalArgumentException.class,
+        () -> parser.parse(new String[] {
+            existingFile(), "out.csv", "FFA200", "10.5"
+        }));
+}
+
+@Test
+public void testThresholdOverflow() throws IOException {
+    assertThrows(IllegalArgumentException.class,
+        () -> parser.parse(new String[] {
+            existingFile(), "out.csv", "FFA200", "2147483648"
+        }));
+}
+
+@Test
+public void testEmptyColor() throws IOException {
+    assertThrows(IllegalArgumentException.class,
+        () -> parser.parse(new String[] {
+            existingFile(), "out.csv", "", "10"
+        }));
+}
+
+@Test
+public void testDirectoryAsInput() throws IOException {
+    Path directory = Files.createTempDirectory("video-test");
+
+    try {
+        assertThrows(IllegalArgumentException.class,
+            () -> parser.parse(new String[] {
+                directory.toString(), "out.csv", "FFA200", "10"
+            }));
+    } finally {
+        Files.deleteIfExists(directory);
+    }
+}
 }
