@@ -22,6 +22,7 @@
 - What portions of your code are untested / only lightly tested? Where would be the highest priority places to add new tests?
 - Other testing improvements?
      neonJobStore only has a few tests.
+     Add a test for an empty videos folder to make sure it returns 200 with an empty list ([]).
 
 # Improving error handling
 - What parts of your code are brittle?
@@ -40,6 +41,7 @@
 - How can you better be resolving/logging/surfacing errors? Hint: almost any place you're using "throws Exception" or "catch(Exception e)" should likely be improved to specify the specific types of exceptions that might be thrown or caught.
 
     imageSummaryApp has catch(exception e) that would need to be replaced
+    Change the missing video response in /thumbnail from 500 to 404 because the video doesn't exist, not because the server broke.
 
 Other error handling improvements?
 
@@ -64,6 +66,7 @@ Other documentation improvements?
 # Improving performance (optional)
 What parts of your code / tests run particularly slowly?
 What speed improvements would most make running / maintaining your code better?
+    FFmpeg runs every time a thumbnail is requested. Save generated thumbnails and reuse them instead of processing the same video repeatedly.
 Other performance improvements?
 
 # Hardening security (optional)
