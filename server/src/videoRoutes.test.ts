@@ -22,18 +22,23 @@ function makeConfig(videoDir: string): AppConfig {
 
 describe("GET /api/videos", () => {
     let testFolder: string;
+    let emptyFolder: string;
 
-    // Make a temporary folder with 2 videos and 1 file that isn't a video
+    // Make a temporary folder with 2 videos and 1 file that isn't a video,
+    // and an empty folder with nothing in it
     beforeAll(() => {
         testFolder = fs.mkdtempSync(path.join(os.tmpdir(), "videos-"));
         fs.writeFileSync(path.join(testFolder, "intro.mp4"), "");
         fs.writeFileSync(path.join(testFolder, "demo.MOV"), "");
         fs.writeFileSync(path.join(testFolder, "notes.txt"), "");
+
+        emptyFolder = fs.mkdtempSync(path.join(os.tmpdir(), "empty-"));
     });
 
-    // Delete the temporary folder when the tests are done
+    // Delete the temporary folders when the tests are done (this runs even if a test fails)
     afterAll(() => {
         fs.rmSync(testFolder, { recursive: true });
+        fs.rmSync(emptyFolder, { recursive: true });
     });
 
     it("sends 200 with only the video file names", async () => {
@@ -61,8 +66,7 @@ describe("GET /api/videos", () => {
     });
 
     it("sends 200 with an empty list when the folder has no videos", async () => {
-        // Arrange: a new folder with nothing in it
-        const emptyFolder = fs.mkdtempSync(path.join(os.tmpdir(), "empty-"));
+        // Arrange
         const app = createApp(makeConfig(emptyFolder));
 
         // Act
@@ -71,8 +75,6 @@ describe("GET /api/videos", () => {
         // Assert
         expect(response.status).toBe(200);
         expect(response.body).toEqual([]);
-
-        fs.rmSync(emptyFolder, { recursive: true });
     });
 });
 
