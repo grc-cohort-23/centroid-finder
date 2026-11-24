@@ -3,3 +3,6 @@
 - add more vidoes 
 - able to track how long people are in certain applications on their device.. like I have been in pinterest for an hour and then I was in another app for 10 minutes..
 - tracking in a game. Like a chess move and then the other player is able to make their moves.. maybe even able to track any moves you are able to make?
+- tracking speed and movement in videos...
+- tracking multiple centroids
+- air traffic control idea
