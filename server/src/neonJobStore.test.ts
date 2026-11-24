@@ -14,6 +14,13 @@ class FakePool {
     }
 }
 
+// A pool whose database is unreachable, like when Neon is down: every query fails
+class BrokenPool extends FakePool {
+    override async query(): Promise<{ rows: object[] }> {
+        throw new Error("database is down");
+    }
+}
+
 // Our FakePool only has query(), which is all NeonJobStore uses, so we tell TypeScript to treat it as a Pool
 function storeWith(pool: FakePool): NeonJobStore {
     return new NeonJobStore(pool as unknown as Pool);
@@ -141,8 +148,32 @@ describe("NeonJobStore", () => {
         // Act
         await store.markError(doneRow.id, sneakyMessage);
 
-        // Assert
-        expect(pool.queries[0]?.sql).not.toContain(sneakyMessage);
-        expect(pool.queries[0]?.values).toContain(sneakyMessage);
+        // Assert: the SQL is exactly the fixed text, so the message can only go in through the $2 placeholder
+        expect(pool.queries[0]?.sql).toBe("UPDATE jobs SET status = 'error', error = $2 WHERE id = $1");
+        expect(pool.queries[0]?.values).toEqual([doneRow.id, sneakyMessage]);
+    });
+
+    it("createJob passes a database error up instead of hiding it", async () => {
+        // Arrange
+        const store = storeWith(new BrokenPool());
+
+        // Act + Assert
+        await expect(store.createJob(doneRow.id, "intro.mp4", "ff0000", 120)).rejects.toThrow("database is down");
+    });
+
+    it("markDone passes a database error up instead of hiding it", async () => {
+        // Arrange
+        const store = storeWith(new BrokenPool());
+
+        // Act + Assert
+        await expect(store.markDone(doneRow.id, doneRow.result)).rejects.toThrow("database is down");
+    });
+
+    it("markError passes a database error up instead of hiding it", async () => {
+        // Arrange
+        const store = storeWith(new BrokenPool());
+
+        // Act + Assert
+        await expect(store.markError(doneRow.id, "Processor exited with code 1")).rejects.toThrow("database is down");
     });
 });
