@@ -133,6 +133,44 @@ it('aborts an in-flight preview when newer settings are selected', () => {
   cy.get('img[alt="Binarized frame"]').should('have.attr', 'src', '/previews/new/binarized.png')
 })
 
+it('keeps the live mask visible until the new image and centroid can be shown together', () => {
+  let releaseImage
+  const imageGate = new Cypress.Promise((resolve) => { releaseImage = resolve })
+  const newImageRequested = Cypress.sinon.spy()
+  const originalRequests = Cypress.sinon.spy()
+
+  cy.intercept('GET', '/previews/*/original.png', (req) => {
+    originalRequests()
+    req.reply({ headers: { 'content-type': 'image/svg+xml' }, body: frame })
+  })
+  cy.intercept('GET', '/previews/updated/binarized.png', (req) => {
+    newImageRequested()
+    return imageGate.then(() => req.reply({ headers: { 'content-type': 'image/svg+xml' }, body: frame }))
+  })
+  cy.intercept('POST', '/api/preview', (req) => {
+    req.reply(req.body.hexColor === '#FFA200' ? preview('initial') : preview('updated', 50, 90))
+  })
+
+  cy.visit(filenameRoute)
+  checkMarkerPlacement()
+  setColor('#999999')
+  cy.wrap(newImageRequested).should('have.been.calledOnce')
+  cy.get('img[alt="Binarized frame"]').should('have.attr', 'src', '/previews/initial/binarized.png')
+  cy.get('canvas.live-mask').should('be.visible').and(($canvas) => {
+    const pixel = $canvas[0].getContext('2d').getImageData(0, 0, 1, 1).data
+    expect(Array.from(pixel)).to.deep.equal([255, 255, 255, 255])
+  })
+  cy.get('.centroid-marker').should('not.exist')
+  cy.contains('Updating preview…').should('be.visible')
+
+  cy.then(() => releaseImage())
+  cy.get('img[alt="Binarized frame"]').should('have.attr', 'src', '/previews/updated/binarized.png')
+  cy.get('canvas.live-mask').should('not.be.visible')
+  cy.contains('Centroid (50, 90)').should('be.visible')
+  cy.get('.centroid-marker').should('have.length', 2)
+  cy.wrap(originalRequests).should('have.been.calledOnce')
+})
+
 it('submits a job, polls until it is complete and exposes the CSV download', () => {
   let polls = 0
   cy.intercept('POST', '/api/preview', preview('ready'))

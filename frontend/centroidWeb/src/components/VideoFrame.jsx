@@ -1,103 +1,97 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { Alert } from '@mui/material'
 
-export default function VideoFrame({
-  title,
-  imageUrl,
-  originalUrl,
-  liveSettings,
-  isUpdating,
-  width,
-  height,
-  centroid,
-}) {
-  const [imageStatus, setImageStatus] = useState('loading')
+export function LiveMask({ sourceImage, settings, isUpdating }) {
   const canvasRef = useRef(null)
-  const sourceImageRef = useRef(null)
+  const pixelsRef = useRef(null)
+  const { hexColor, tolerance } = settings
+  const { naturalWidth: width, naturalHeight: height } = sourceImage
 
-  const renderLiveCanvas = useCallback(() => {
-    if (!canvasRef.current || !sourceImageRef.current || !liveSettings) return
-    const { hexColor, tolerance } = liveSettings
-    const img = sourceImageRef.current
+  useLayoutEffect(() => {
+    if (!isUpdating) return
     const canvas = canvasRef.current
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    canvas.width = img.width
-    canvas.height = img.height
-    ctx.drawImage(img, 0, 0)
-    const imgData = ctx.getImageData(0, 0, img.width, img.height)
-    const data = imgData.data
+    if (pixelsRef.current?.sourceImage !== sourceImage) {
+      ctx.drawImage(sourceImage, 0, 0)
+      pixelsRef.current = {
+        sourceImage,
+        original: ctx.getImageData(0, 0, width, height).data,
+        mask: ctx.createImageData(width, height),
+      }
+    }
+    const { original, mask } = pixelsRef.current
 
-    const cleanHex = hexColor.replace('#', '')
-    const targetR = parseInt(cleanHex.slice(0, 2), 16) || 0
-    const targetG = parseInt(cleanHex.slice(2, 4), 16) || 0
-    const targetB = parseInt(cleanHex.slice(4, 6), 16) || 0
+    const target = Number.parseInt(hexColor.replace('#', ''), 16)
+    const targetR = (target >> 16) & 255
+    const targetG = (target >> 8) & 255
+    const targetB = target & 255
     const thresholdSq = tolerance * tolerance
 
-    for (let i = 0; i < data.length; i += 4) {
-      const dr = data[i] - targetR
-      const dg = data[i + 1] - targetG
-      const db = data[i + 2] - targetB
+    for (let i = 0; i < original.length; i += 4) {
+      const dr = original[i] - targetR
+      const dg = original[i + 1] - targetG
+      const db = original[i + 2] - targetB
       const distSq = dr * dr + dg * dg + db * db
       const val = distSq < thresholdSq ? 255 : 0
-      data[i] = val
-      data[i + 1] = val
-      data[i + 2] = val
-      data[i + 3] = 255
+      mask.data[i] = val
+      mask.data[i + 1] = val
+      mask.data[i + 2] = val
+      mask.data[i + 3] = 255
     }
-    ctx.putImageData(imgData, 0, 0)
-  }, [liveSettings])
+    ctx.putImageData(mask, 0, 0)
+  }, [sourceImage, width, height, hexColor, tolerance, isUpdating])
 
-  useEffect(() => {
-    if (!originalUrl) return
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.onload = () => {
-      sourceImageRef.current = img
-      renderLiveCanvas()
-    }
-    img.src = originalUrl
-  }, [originalUrl, renderLiveCanvas])
+  return <canvas ref={canvasRef} className="live-mask" width={width} height={height} hidden={!isUpdating} aria-hidden="true" />
+}
 
-  useEffect(() => {
-    if (isUpdating && sourceImageRef.current) {
-      renderLiveCanvas()
-    }
-  }, [isUpdating, renderLiveCanvas])
+export default function VideoFrame({
+  title,
+  imageUrl,
+  pendingImageUrl,
+  onImageLoad,
+  onPendingLoad,
+  onPendingError,
+  width,
+  height,
+  centroid,
+  children,
+}) {
+  const [loadedUrl, setLoadedUrl] = useState(null)
+  const [failedUrl, setFailedUrl] = useState(null)
+  const visibleUrl = imageUrl ?? pendingImageUrl
+  // Preserve the loaded image element when it moves from pending to visible.
+  const urls = imageUrl && pendingImageUrl ? [imageUrl, pendingImageUrl] : [visibleUrl]
 
   return (
     <section className="frame">
       <h2>{title}</h2>
-      {imageStatus === 'error' ? (
+      {failedUrl === visibleUrl ? (
         <Alert severity="error">The image could not load. Refresh the page to request a new preview.</Alert>
       ) : (
-        <div className="frame-image" style={{ position: 'relative' }}>
-          <img
-            src={imageUrl}
-            alt={title}
-            width={width}
-            height={height}
-            onLoad={() => setImageStatus('ready')}
-            onError={() => setImageStatus('error')}
-          />
-          {originalUrl && liveSettings && (
-            <canvas
-              ref={canvasRef}
+        <div className="frame-image">
+          {urls.map((url) => (
+            <img
+              key={url}
+              src={url}
+              alt={url === visibleUrl ? title : ''}
               width={width}
               height={height}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                display: isUpdating ? 'block' : 'none',
-                pointerEvents: 'none',
+              hidden={url !== visibleUrl}
+              onLoad={(event) => {
+                setLoadedUrl(url)
+                if (url === pendingImageUrl) onPendingLoad()
+                else onImageLoad?.(event.currentTarget)
+              }}
+              onError={() => {
+                if (url === pendingImageUrl) onPendingError()
+                else setFailedUrl(url)
               }}
             />
-          )}
-          {imageStatus === 'ready' && centroid && (
+          ))}
+          {children}
+          {loadedUrl === visibleUrl && centroid && (
             <span
               className="centroid-marker"
               aria-hidden="true"
