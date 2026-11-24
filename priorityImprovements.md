@@ -53,3 +53,4 @@ hardening security (optional)
 bug fixes (optional)
 
 other (optional)
+- Clean up .gitignore
