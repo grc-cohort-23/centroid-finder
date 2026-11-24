@@ -1,0 +1,99 @@
+/* Design tokens and base element styles. Component styles are in App.css. */
+
+:root {
+  --bg: #f6f6f4;
+  --surface: #ffffff;
+  --surface-2: #f4f4f1;
+  --border: #e3e3df;
+  --border-strong: #d4d4cf;
+  --text: #18181b;
+  --muted: #52525b;
+  --accent: #c2410c;
+  --accent-hover: #9a3412;
+  --accent-bright: #f97316;
+  --blue: #1d4ed8;
+
+  --done-bg: #ecfdf3;
+  --done-fg: #166534;
+  --done-dot: #16a34a;
+  --processing-bg: #fff1e8;
+  --processing-fg: #9a3412;
+  --processing-dot: #ea580c;
+  --error-bg: #fef2f2;
+  --error-fg: #991b1b;
+  --error-dot: #dc2626;
+  --none-bg: #f1f1ee;
+
+  --sans: Inter, system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: 'Space Grotesk', Inter, system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  --radius: 14px;
+
+  font: 16px/1.5 var(--sans);
+  color: var(--text);
+  background: var(--bg);
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  min-height: 100vh;
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 600;
+  margin: 0;
+  color: var(--text);
+}
+
+h1 {
+  font-size: 34px;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+}
+
+h2 {
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+p,
+figure {
+  margin: 0;
+}
+
+a {
+  color: var(--accent);
+}
+
+a:hover {
+  color: var(--accent-hover);
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  background: var(--surface-2);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  h1 {
+    font-size: 26px;
+  }
+}
