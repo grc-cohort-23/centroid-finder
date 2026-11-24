@@ -10,11 +10,14 @@ For a tracked object, figure out how fast it is moving and which direction it is
 - The frontend shows the speed next to the video
 
 ## Goal: Track multiple objects at once
-Track several objects of the same color in one video and keep the same ID for each object from frame to frame.
-- Use the groups `DfsBinaryGroupFinder` already finds, instead of only keeping the largest one
-- Match each object to the closest object in the previous frame so its ID stays the same
-- Handle objects that leave the screen or show up partway through the video
-- Limit the number of objects (for example the top 3) to keep the CSV simple
+Track up to 3 objects of the same color in one video, and keep the same ID for each object from frame to frame while the objects stay apart.
+- New Java tracker class that keeps the 3 largest groups `DfsBinaryGroupFinder` already finds, instead of only the largest one
+- Ignore very small groups (a minimum size) so a few noisy pixels don't count as an object
+- After all frames are processed, go through them in order and give each object the ID of the closest object in the previous frame
+- If the closest object is too far away (a set distance), treat it as a new object, so objects that show up partway through or leave the screen get handled
+- Known limit: when two objects touch or cross, they merge into one group and their IDs might swap afterwards
+- Backup plan: if matching IDs gets stuck, track two objects of different colors instead (each color is one object, so no matching is needed)
+- The API returns each object's ID and position with the job results
 - The frontend draws each object's path in its own color
 
 ## Stretch: Predict paths and warn about collisions
