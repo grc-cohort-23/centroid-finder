@@ -14,6 +14,13 @@ class FakePool {
     }
 }
 
+// A pool whose database is unreachable, like when Neon is down: every query fails
+class BrokenPool extends FakePool {
+    override async query(): Promise<{ rows: object[] }> {
+        throw new Error("database is down");
+    }
+}
+
 // Our FakePool only has query(), which is all NeonJobStore uses, so we tell TypeScript to treat it as a Pool
 function storeWith(pool: FakePool): NeonJobStore {
     return new NeonJobStore(pool as unknown as Pool);
@@ -85,5 +92,88 @@ describe("NeonJobStore", () => {
         // Assert
         expect(job).toBeUndefined();
         expect(pool.queries).toEqual([]);
+    });
+
+    it("createJob inserts a new job with status 'processing'", async () => {
+        // Arrange
+        const pool = new FakePool();
+        const store = storeWith(pool);
+
+        // Act
+        await store.createJob(doneRow.id, "intro.mp4", "ff0000", 120);
+
+        // Assert
+        expect(pool.queries).toHaveLength(1);
+        expect(pool.queries[0]?.sql).toContain("INSERT INTO jobs");
+        expect(pool.queries[0]?.sql).toContain("'processing'");
+        expect(pool.queries[0]?.values).toEqual([doneRow.id, "intro.mp4", "ff0000", 120]);
+    });
+
+    it("markDone sets the status to 'done' and saves the result path", async () => {
+        // Arrange
+        const pool = new FakePool();
+        const store = storeWith(pool);
+
+        // Act
+        await store.markDone(doneRow.id, doneRow.result);
+
+        // Assert
+        expect(pool.queries).toHaveLength(1);
+        expect(pool.queries[0]?.sql).toContain("UPDATE jobs");
+        expect(pool.queries[0]?.sql).toContain("status = 'done'");
+        expect(pool.queries[0]?.values).toEqual([doneRow.id, doneRow.result]);
+    });
+
+    it("markError sets the status to 'error' and saves the message", async () => {
+        // Arrange
+        const pool = new FakePool();
+        const store = storeWith(pool);
+
+        // Act
+        await store.markError(doneRow.id, "Processor exited with code 1");
+
+        // Assert
+        expect(pool.queries).toHaveLength(1);
+        expect(pool.queries[0]?.sql).toContain("UPDATE jobs");
+        expect(pool.queries[0]?.sql).toContain("status = 'error'");
+        expect(pool.queries[0]?.values).toEqual([doneRow.id, "Processor exited with code 1"]);
+    });
+
+    it("markError sends the message as a value, never inside the SQL (no SQL injection)", async () => {
+        // Arrange
+        const pool = new FakePool();
+        const store = storeWith(pool);
+        const sneakyMessage = "can't read video'; DROP TABLE jobs; --";
+
+        // Act
+        await store.markError(doneRow.id, sneakyMessage);
+
+        // Assert: the SQL is exactly the fixed text, so the message can only go in through the $2 placeholder
+        expect(pool.queries[0]?.sql).toBe("UPDATE jobs SET status = 'error', error = $2 WHERE id = $1");
+        expect(pool.queries[0]?.values).toEqual([doneRow.id, sneakyMessage]);
+    });
+
+    it("createJob passes a database error up instead of hiding it", async () => {
+        // Arrange
+        const store = storeWith(new BrokenPool());
+
+        // Act + Assert
+        await expect(store.createJob(doneRow.id, "intro.mp4", "ff0000", 120)).rejects.toThrow("database is down");
+    });
+
+    it("markDone passes a database error up instead of hiding it", async () => {
+        // Arrange
+        const store = storeWith(new BrokenPool());
+
+        // Act + Assert
+        await expect(store.markDone(doneRow.id, doneRow.result)).rejects.toThrow("database is down");
+    });
+
+    it("markError passes a database error up instead of hiding it", async () => {
+        // Arrange
+        const store = storeWith(new BrokenPool());
+
+        // Act + Assert
+        await expect(store.markError(doneRow.id, "Processor exited with code 1")).rejects.toThrow("database is down");
     });
 });
