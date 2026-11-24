@@ -127,6 +127,26 @@ describe("GET /api/videos", () => {
 // GET /thumbnail/:filename
 // ============================================================
 describe("GET /thumbnail/:filename", () => {
+  test("rejects directories as thumbnails", async () => {
+  fs.mkdirSync(path.join(videosDir, "folder.mp4"));
+
+  const res = await request(buildApp())
+    .get("/thumbnail/folder.mp4");
+
+  expect(res.status).toBe(400);
+});
+
+test("rejects unsupported thumbnail extensions", async () => {
+  fs.writeFileSync(
+    path.join(videosDir, "notes.txt"),
+    "not a video"
+  );
+
+  const res = await request(buildApp())
+    .get("/thumbnail/notes.txt");
+
+  expect(res.status).toBe(400);
+});
   test("returns a JPEG for an existing video", async () => {
     const res = await request(buildApp()).get("/thumbnail/ensantina.mp4");
 
@@ -159,6 +179,29 @@ describe("GET /thumbnail/:filename", () => {
 // POST /process/:filename
 // ============================================================
 describe("POST /process/:filename", () => {
+  test.each(["443", "99999999999"])(
+  "rejects threshold above maximum: %s",
+  async (threshold) => {
+    const res = await request(buildApp())
+      .post("/process/ensantina.mp4")
+      .query({ targetColor: "5C0005", threshold });
+
+    expect(res.status).toBe(400);
+    expect(processorCalls).toHaveLength(0);
+  }
+);
+
+test.each(["0", "442"])(
+  "accepts valid boundary threshold: %s",
+  async (threshold) => {
+    const res = await request(buildApp())
+      .post("/process/ensantina.mp4")
+      .query({ targetColor: "5C0005", threshold });
+
+    expect(res.status).toBe(202);
+    expect(processorCalls).toHaveLength(1);
+  }
+);
   test("starts a job and answers 202 with a jobId", async () => {
     const res = await request(buildApp())
       .post("/process/ensantina.mp4")
@@ -338,5 +381,6 @@ describe("GET /process/:jobId/status", () => {
 
     expect(res.status).toBe(404);
     expect(res.body).toEqual({ error: "Job ID not found" });
+    
   });
 });

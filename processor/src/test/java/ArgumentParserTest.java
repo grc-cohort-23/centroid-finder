@@ -92,6 +92,19 @@ public class ArgumentParserTest {
     }
 
     @Test
+public void testMaximumThresholdAllowed() throws IOException {
+    VideoProcessorArgs args = parser.parse(new String[] {
+        existingFile(), "out.csv", "FFA200", "442"
+    });
+
+    assertEquals(442, args.threshold());
+}
+
+@Test
+public void testThresholdAboveMaximum() throws IOException {
+    assertThrows(IllegalArgumentException.class,
+        () -> parser.parse(new String[] {
+            existingFile(), "out.csv", "FFA200", "443"
 public void testDecimalThreshold() throws IOException {
     assertThrows(IllegalArgumentException.class,
         () -> parser.parse(new String[] {
@@ -108,6 +121,12 @@ public void testThresholdOverflow() throws IOException {
 }
 
 @Test
+public void testExtremelyLargeThreshold() throws IOException {
+    assertThrows(IllegalArgumentException.class,
+        () -> parser.parse(new String[] {
+            existingFile(), "out.csv", "FFA200", "999999999"
+        }));
+}
 public void testEmptyColor() throws IOException {
     assertThrows(IllegalArgumentException.class,
         () -> parser.parse(new String[] {

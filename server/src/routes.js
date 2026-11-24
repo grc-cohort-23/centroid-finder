@@ -18,6 +18,24 @@ const HEX_COLOR = /^#?[0-9a-fA-F]{6}$/;
 
 // Digits only, so 0 or a positive whole number
 const WHOLE_NUMBER = /^\d+$/;
+// The maximum Euclidean distance between two RGB colors is
+//  approximately 441.67. 
+// A threshold of 442 includes every possible RGB
+//  color because your binarizer uses a strict 
+// less-than comparison.
+const MAX_THRESHOLD = 442;
+
+function isValidVideoFilename(filename) {
+  return (
+    typeof filename === "string" &&
+    !filename.includes("/") &&
+    !filename.includes("\\") &&
+    !filename.includes("\0") &&
+    VIDEO_EXTENSIONS.includes(
+      path.extname(filename).toLowerCase()
+    )
+  );
+}
 // Job IDs are UUIDs
 const UUID = /^[0-9a-fA-F-]{36}$/;
 
@@ -33,36 +51,57 @@ function createRoutes({ videosDir, resultsDir, jobStore, runProcessor, makeThumb
    * Returns the video file names in the videos folder, like ["ensantina.mp4"].
    */
   router.get("/api/videos", async (req, res) => {
-    try {
-      const files = await fs.readdir(videosDir);
-      const videos = files.filter((file) =>
-        VIDEO_EXTENSIONS.includes(path.extname(file).toLowerCase())
-      );
-      res.json(videos);
-    } catch (err) {
-      res.status(500).json({ error: "Error reading video directory" });
-    }
-  });
+  try {
+    const files = await fs.readdir(videosDir, {
+      withFileTypes: true,
+    });
+
+    const videos = files
+      .filter((file) =>
+        file.isFile() && isValidVideoFilename(file.name)
+      )
+      .map((file) => file.name);
+
+    res.json(videos);
+  } catch (err) {
+    res.status(500).json({
+      error: "Error reading video directory",
+    });
+  }
+});
 
   /**
    * GET /thumbnail/:filename
    * Returns the first frame of the video as a JPEG.
    */
-  router.get("/thumbnail/:filename", async (req, res) => {
-    /*
-     * basename keeps only the file name, so a request like
-     * "../../secret" can't reach files outside the videos folder.
-     */
-    const videoPath = path.join(videosDir, path.basename(req.params.filename));
+ router.get("/thumbnail/:filename", async (req, res) => {
+  const filename = req.params.filename;
 
-    try {
-      await fs.access(videoPath);
-      const jpeg = await makeThumbnail(videoPath);
-      res.type("image/jpeg").send(jpeg);
-    } catch (err) {
-      res.status(500).json({ error: "Error generating thumbnail" });
+  if (!isValidVideoFilename(filename)) {
+    return res.status(400).json({
+      error: "Invalid video filename.",
+    });
+  }
+
+  const videoPath = path.join(videosDir, filename);
+
+  try {
+    const file = await fs.lstat(videoPath);
+
+    if (!file.isFile()) {
+      return res.status(400).json({
+        error: "The requested video must be a regular file.",
+      });
     }
-  });
+
+    const jpeg = await makeThumbnail(videoPath);
+    res.type("image/jpeg").send(jpeg);
+  } catch (err) {
+    res.status(500).json({
+      error: "Error generating thumbnail",
+    });
+  }
+});
 
   /**
    * POST /process/:filename?targetColor=ff0000&threshold=120
@@ -70,27 +109,53 @@ function createRoutes({ videosDir, resultsDir, jobStore, runProcessor, makeThumb
    * Answers right away with 202 { jobId }, without waiting for the JAR.
    */
   router.post("/process/:filename", async (req, res) => {
-    const filename = path.basename(req.params.filename);
+    const filename = req.params.filename;
     const { targetColor, threshold } = req.query;
+
+    if (!isValidVideoFilename(filename)) {
+      return res.status(400).json({
+        error: "Invalid video filename.",
+      });
+    }
 
     // Check the inputs
     if (!targetColor || !threshold) {
       return res.status(400).json({ error: "Missing targetColor or threshold query parameter." });
     }
-    if (!HEX_COLOR.test(targetColor)) {
-      return res.status(400).json({ error: "targetColor must be a 6-digit hex color, like ff0000." });
+    if (
+      typeof targetColor !== "string" ||
+      !HEX_COLOR.test(targetColor)
+    ) {
+      return res.status(400).json({
+        error: "targetColor must be a 6-digit hex color, like ff0000.",
+      });
     }
-    if (!WHOLE_NUMBER.test(threshold)) {
-      return res.status(400).json({ error: "threshold must be a whole number, 0 or bigger." });
+
+    if (
+      typeof threshold !== "string" ||
+      !WHOLE_NUMBER.test(threshold) ||
+      Number(threshold) > MAX_THRESHOLD
+    ) {
+      return res.status(400).json({
+        error: "threshold must be a whole number between 0 and 442.",
+      });
     }
     // always plain RRGGBB by remove a leading #
     const color = targetColor.replace(/^#/, "");
 
     const videoPath = path.join(videosDir, filename);
     try {
-      await fs.access(videoPath);
+      const file = await fs.lstat(videoPath);
+
+      if (!file.isFile()) {
+        return res.status(400).json({
+          error: "The requested video must be a regular file.",
+        });
+      }
     } catch {
-      return res.status(400).json({ error: `Video not found: ${filename}` });
+      return res.status(400).json({
+        error: `Video not found: ${filename}`,
+      });
     }
 
     try {

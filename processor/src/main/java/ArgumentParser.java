@@ -6,6 +6,8 @@ import java.nio.file.Path;
  * Any bad input causes an IllegalArgumentException
  */
 public class ArgumentParser {
+    // Maximum possible RGB color distance, rounded up.
+    private static final int MAX_THRESHOLD = 442;
 
     public static final String USAGE =
         "Usage: java -jar videoprocessor.jar <inputPath> <outputCsv> <targetColor RRGGBB> <threshold>";
@@ -35,20 +37,22 @@ public class ArgumentParser {
         return Integer.parseInt(hex, 16); 
     }
 
-    // turn "164" into the number 164 (whole num, 0 or bigger)
-    private int parseThreshold(String text) {
-        int threshold;
-        try {
-            threshold = Integer.parseInt(text);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid threshold: " + text);
-        }
+    // Converts the threshold string into an integer between 0 and 442.
+private int parseThreshold(String text) {
+    int threshold;
 
-        if (threshold < 0) {
-            throw new IllegalArgumentException("Threshold must not be negative: " + text);
-        }
-        return threshold;
+    try {
+        threshold = Integer.parseInt(text);
+    } catch (NumberFormatException e) {
+        throw new IllegalArgumentException("Invalid threshold: " + text);
     }
 
-
+    if (threshold < 0 || threshold > MAX_THRESHOLD) {
+        throw new IllegalArgumentException(
+            "Threshold must be between 0 and " + MAX_THRESHOLD + ": " + text
+        );
     }
+
+    return threshold;
+}
+}
