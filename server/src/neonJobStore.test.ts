@@ -86,4 +86,63 @@ describe("NeonJobStore", () => {
         expect(job).toBeUndefined();
         expect(pool.queries).toEqual([]);
     });
+
+    it("createJob inserts a new job with status 'processing'", async () => {
+        // Arrange
+        const pool = new FakePool();
+        const store = storeWith(pool);
+
+        // Act
+        await store.createJob(doneRow.id, "intro.mp4", "ff0000", 120);
+
+        // Assert
+        expect(pool.queries).toHaveLength(1);
+        expect(pool.queries[0]?.sql).toContain("INSERT INTO jobs");
+        expect(pool.queries[0]?.sql).toContain("'processing'");
+        expect(pool.queries[0]?.values).toEqual([doneRow.id, "intro.mp4", "ff0000", 120]);
+    });
+
+    it("markDone sets the status to 'done' and saves the result path", async () => {
+        // Arrange
+        const pool = new FakePool();
+        const store = storeWith(pool);
+
+        // Act
+        await store.markDone(doneRow.id, doneRow.result);
+
+        // Assert
+        expect(pool.queries).toHaveLength(1);
+        expect(pool.queries[0]?.sql).toContain("UPDATE jobs");
+        expect(pool.queries[0]?.sql).toContain("status = 'done'");
+        expect(pool.queries[0]?.values).toEqual([doneRow.id, doneRow.result]);
+    });
+
+    it("markError sets the status to 'error' and saves the message", async () => {
+        // Arrange
+        const pool = new FakePool();
+        const store = storeWith(pool);
+
+        // Act
+        await store.markError(doneRow.id, "Processor exited with code 1");
+
+        // Assert
+        expect(pool.queries).toHaveLength(1);
+        expect(pool.queries[0]?.sql).toContain("UPDATE jobs");
+        expect(pool.queries[0]?.sql).toContain("status = 'error'");
+        expect(pool.queries[0]?.values).toEqual([doneRow.id, "Processor exited with code 1"]);
+    });
+
+    it("markError sends the message as a value, never inside the SQL (no SQL injection)", async () => {
+        // Arrange
+        const pool = new FakePool();
+        const store = storeWith(pool);
+        const sneakyMessage = "can't read video'; DROP TABLE jobs; --";
+
+        // Act
+        await store.markError(doneRow.id, sneakyMessage);
+
+        // Assert
+        expect(pool.queries[0]?.sql).not.toContain(sneakyMessage);
+        expect(pool.queries[0]?.values).toContain(sneakyMessage);
+    });
 });
