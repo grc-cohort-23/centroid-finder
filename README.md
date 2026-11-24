@@ -2,6 +2,8 @@
 
 The React app lets you choose a video, compare the original and binarized first frames, and download a centroid report for the full video. Setup instructions, tests, and screenshots are available in the [web app README](frontend/centroidWeb/README.md).
 
+For endpoints, request settings, and job statuses, see the [server REST API reference](server/API.md).
+
 # Video Added
 
 ## *DO THIS FIRST* Wave 0: AI Rules 
