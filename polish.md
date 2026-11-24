@@ -1,6 +1,5 @@
-
-
 Plan:
+
 ## 1
 Readme:
 Things a recruiter tends to look for:
@@ -13,11 +12,13 @@ A real number is impressive, like "processing an 8-minute video went from 77 s t
 
 ## 2
 A GIF of the frontend. On a Mac, you can record the screen with Cmd+Shift+5, then turn the recording into a GIF with a free tool. Keep it short (10–20 seconds) and under about 10 MB so GitHub shows it.
+
 Removing unneeded files. From the earlier review, the candidates are:
 JavaCVExperiment.java
 processor/extractedFrame.png
 the salamander-*.csv files in the root folder
 the planning notes, if you don't want them public: notes.md, options.md, ideas.md
+
 check with your instructor before deleting files they grade, like humanImprovements.md, robotImprovements.md and priorityImprovements.md
 
 ## 3 extra idea
@@ -28,7 +29,5 @@ A live demo link: host the frontend and server somewhere free, so a recruiter ca
 A short "how it works" diagram: video → JAR → CSV → API → frontend. It shows you understand the whole system.
 
 A before/after section: a frame with the tracked path drawn on top, or the speed-up numbers.
-
-Clean commit history and PR links: link a few of your best PRs from the README to show teamwork and code review.
 
 Consistent code style: add Prettier for the server, with a format script, so all the code looks the same.
