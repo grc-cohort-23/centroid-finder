@@ -8,6 +8,28 @@ import ThresholdPicker from './ThresholdPicker'
 import VideoFrame, { LiveMask } from './VideoFrame'
 import withRequestStatus from './withRequestStatus'
 
+/**
+ * @typedef {Object} Centroid
+ * @property {number} x - Pixel column of the centroid.
+ * @property {number} y - Pixel row of the centroid.
+ */
+
+/**
+ * @typedef {Object} ProcessingSettings
+ * @property {string} videoFilename - Name of the selected video on the server.
+ * @property {string} hexColor - Target color as a hex string, e.g. "#ff0000".
+ * @property {number} tolerance - Max RGB Euclidean distance from the target for a pixel to count as a match.
+ */
+
+/**
+ * @typedef {Object} PreviewData
+ * @property {string} originalUrl - URL of the unprocessed frame.
+ * @property {string} previewUrl - URL of the server-binarized frame.
+ * @property {number} width - Frame width in pixels.
+ * @property {number} height - Frame height in pixels.
+ * @property {Centroid} centroid - Centroid of matching pixels.
+ */
+
 const previewDelay = 300
 
 function PreviewFrames({ preview, displayed, pending, showMarker, settings, isUpdating, onPendingLoad, onPendingError }) {
@@ -16,6 +38,20 @@ function PreviewFrames({ preview, displayed, pending, showMarker, settings, isUp
   // Keep the first decoded original frame as the source for all settings on this video.
   const originalUrl = sourceImage?.getAttribute('src') ?? preview.originalUrl
   const isCurrent = displayed?.settings === settings
+/**
+ * Renders the original and binarized frames side by side plus a centroid
+ * status line. Intended to be wrapped by {@link withRequestStatus}, which
+ * supplies `isUpdating`.
+ *
+ * @param {Object} props
+ * @param {PreviewData} props.preview - Server preview response.
+ * @param {boolean} props.showMarker - Whether to draw the centroid marker.
+ * @param {ProcessingSettings} props.liveSettings - Current (possibly unsaved) settings, used for client-side re-rendering.
+ * @param {boolean} props.isUpdating - True while `preview` is stale relative to `liveSettings`.
+ * @returns {JSX.Element}
+ */
+function PreviewFrames({ preview, showMarker, liveSettings, isUpdating }) {
+  const { originalUrl, previewUrl, width, height, centroid } = preview
   const hasCentroid = centroid.x >= 0 && centroid.y >= 0
   const frameProps = { width, height, centroid: isCurrent && showMarker && hasCentroid ? centroid : null }
 
@@ -44,6 +80,34 @@ function PreviewFrames({ preview, displayed, pending, showMarker, settings, isUp
 
 const PreviewWithStatus = withRequestStatus(PreviewFrames)
 
+
+/**
+ * Preview screen for tuning color-threshold settings against a single frame
+ * of a video, before launching a full processing job.
+ *
+ * Behavior:
+ * - Any change to `filename`, `targetColor`, or `threshold` triggers a
+ *   debounced (300 ms) POST to `/api/preview`. In-flight requests are aborted
+ *   when settings change again or the component unmounts.
+ * - While a new request is pending, the previous result stays on screen and
+ *   the binarized frame is re-rendered client-side (see {@link VideoFrame})
+ *   so the user gets instant feedback.
+ *
+ * States (derived from the latest request result):
+ * - `loading`  – no result yet; shows "Generating preview…".
+ * - `ready`    – preview received for the current settings.
+ * - `updating` – a result exists but for older settings (`isUpdating`);
+ *                a progress bar is shown over the stale preview.
+ * - `error`    – the request failed; shows the error message.
+ *
+ * @param {Object} props
+ * @param {string} props.filename - Selected video filename.
+ * @param {number} props.threshold - Color-match tolerance (see ProcessingSettings.tolerance).
+ * @param {(value: number) => void} props.setThreshold - Called when the threshold changes.
+ * @param {string} props.targetColor - Target color as a hex string (e.g. "#aabbcc").
+ * @param {(value: string) => void} props.setTargetColor - Called when the color changes.
+ * @returns {JSX.Element}
+ */
 export default function PreviewPage({ filename, threshold, setThreshold, targetColor, setTargetColor }) {
   const [{ displayed, result }, setPreviewState] = useState({ displayed: null, result: null })
   const [showMarker, setShowMarker] = useState(true)

@@ -2,6 +2,8 @@ package io.github.tonymythical.centroidFinder;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 
@@ -57,6 +59,10 @@ public class ImageSummaryApp {
             e.printStackTrace();
             return;
         }
+        if (inputImage == null) {
+            System.err.println("Unsupported or unreadable image format: " + inputImagePath);
+            return;
+        }
         
         // Parse the target color from a hex string (format RRGGBB) into a 24-bit integer (0xRRGGBB)
         int targetColor = 0;
@@ -79,7 +85,7 @@ public class ImageSummaryApp {
         try {
             ImageIO.write(binaryImage, "png", new File("binarized.png"));
             System.out.println("Binarized image saved as binarized.png");
-        } catch (Exception e) {
+        } catch (IOException e) {
             System.err.println("Error saving binarized image.");
             e.printStackTrace();
         }
@@ -98,7 +104,7 @@ public class ImageSummaryApp {
                 writer.println(group.toCsvRow());
             }
             System.out.println("Groups summary saved as groups.csv");
-        } catch (Exception e) {
+        } catch (FileNotFoundException e) {
             System.err.println("Error writing groups.csv");
             e.printStackTrace();
         }
