@@ -105,6 +105,8 @@ The output should match the files in `sampleOutput/`.
    | `VIDEOS_DIR` | the full path to the folder with the videos, like `.../centroid-finder/processor/sampleInput` |
    | `RESULTS_DIR` | the full path to the folder the result CSVs go in (it's made for you if it doesn't exist) |
    | `JAR_PATH` | the full path to `processor/target/videoprocessor.jar` |
+
+   Every setting except `PORT` is required. If one is missing, the server stops right away with a message saying which settings to set in `.env`.
 3. **Install the packages** (from `server/`), once after cloning or pulling:
    ```
    npm install
