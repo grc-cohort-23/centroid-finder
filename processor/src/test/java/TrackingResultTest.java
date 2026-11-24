@@ -1,5 +1,6 @@
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
+import java.util.Locale;
 
 public class TrackingResultTest {
 
@@ -34,4 +35,29 @@ public class TrackingResultTest {
         TrackingResult result = new TrackingResult(5.0, new Coordinate(-1, -1));
         assertEquals("5.000,-1,-1", result.toCsvRow());
     }
+
+    @Test
+public void testCsvRowWholeSeconds() {
+    TrackingResult result =
+        new TrackingResult(120.0, new Coordinate(25, 50));
+
+    assertEquals("120.000,25,50", result.toCsvRow());
+}
+
+// uses locale.root to prevent this from breaking 
+@Test
+public void testCsvRowLocaleIndependent() {
+    Locale original = Locale.getDefault();
+
+    try {
+        Locale.setDefault(Locale.GERMANY);
+
+        TrackingResult result =
+            new TrackingResult(1.5, new Coordinate(10, 20));
+
+        assertEquals("1.500,10,20", result.toCsvRow());
+    } finally {
+        Locale.setDefault(original);
+    }
+}
 }

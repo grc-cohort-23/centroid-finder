@@ -130,4 +130,60 @@ public class VideoProcessorTest {
     public void testNullTrackerThrows() {
         assertThrows(NullPointerException.class, () -> new VideoProcessor(null));
     }
+
+    @Test
+public void testFrameSourceIOException() {
+    FrameSource source = new FrameSource() {
+        @Override
+        public Optional<TimedFrame> nextFrame()
+                throws IOException {
+            throw new IOException("Unable to read frame");
+        }
+
+        @Override
+        public void close() {}
+    };
+
+    FakeResultWriter writer = new FakeResultWriter();
+
+    VideoProcessor processor = new VideoProcessor(
+        trackerAlwaysFinding(new Coordinate(0, 0))
+    );
+
+    IOException exception = assertThrows(
+        IOException.class,
+        () -> processor.process(source, writer)
+    );
+
+    assertEquals("Unable to read frame", exception.getMessage());
+    assertTrue(writer.written.isEmpty());
+}
+
+@Test
+public void testResultWriterIOException() {
+    FakeFrameSource source =
+        new FakeFrameSource(List.of(frameAt(0.0)));
+
+    ResultWriter writer = new ResultWriter() {
+        @Override
+        public void write(TrackingResult result)
+                throws IOException {
+            throw new IOException("Unable to write result");
+        }
+
+        @Override
+        public void close() {}
+    };
+
+    VideoProcessor processor = new VideoProcessor(
+        trackerAlwaysFinding(new Coordinate(0, 0))
+    );
+
+    IOException exception = assertThrows(
+        IOException.class,
+        () -> processor.process(source, writer)
+    );
+
+    assertEquals("Unable to write result", exception.getMessage());
+}
 }
