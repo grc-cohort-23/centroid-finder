@@ -182,6 +182,34 @@ describe("POST /process/:filename", () => {
         expect(store.jobs.size).toBe(0);
     });
 
+    it("sends 400 when threshold is too big for the database's INTEGER column", async () => {
+        // Arrange
+        const store = new FakeJobStore();
+        const app = createApp(makeConfig(store));
+
+        // Act: 2147483648 is one more than the biggest INTEGER
+        const response = await request(app).post("/process/intro.mp4?targetColor=ff0000&threshold=2147483648");
+
+        // Assert
+        expect(response.status).toBe(400);
+        expect(response.body.error).toMatch(/threshold/);
+        expect(store.jobs.size).toBe(0);
+    });
+
+    it("accepts the biggest threshold an INTEGER can hold", async () => {
+        // Arrange
+        const store = new FakeJobStore();
+        const app = createApp(makeConfig(store));
+
+        // Act
+        const response = await request(app).post("/process/intro.mp4?targetColor=ff0000&threshold=2147483647");
+
+        // Assert: right at the limit is still OK
+        expect(response.status).toBe(202);
+        const job = await store.findJob(response.body.jobId);
+        expect(job?.threshold).toBe(2147483647);
+    });
+
     it("sends 400 when the file isn't a video", async () => {
         // Arrange: notes.txt is really in the folder, but it isn't .mp4 or .mov
         const store = new FakeJobStore();

@@ -10,6 +10,8 @@ import { isVideoFile } from "./videoInfo.js";
 const HEX_COLOR = /^[0-9A-Fa-f]{6}$/;
 // only digits, so it's a whole number that is 0 or higher (no letters, decimals, or minus sign)
 const WHOLE_NUMBER = /^\d+$/;
+// the biggest number an INTEGER can hold, in both our jobs table and a Java int (ArgumentParser)
+const MAX_THRESHOLD = 2147483647;
 
 // true if the path is a real file (not a folder, and not missing)
 async function isRealFile(filePath: string): Promise<boolean> {
@@ -48,6 +50,13 @@ export function processRoute(config: AppConfig): Router {
             return;
         }
 
+        // too big for the database's INTEGER column, which would give a 500 instead of a 400
+        const thresholdValue = Number(threshold);
+        if (thresholdValue > MAX_THRESHOLD) {
+            res.status(400).json({ error: `threshold must be ${MAX_THRESHOLD} or less.` });
+            return;
+        }
+
         if (!isVideoFile(filename)) {
             res.status(400).json({ error: "The file must be a video (.mp4 or .mov)." });
             return;
@@ -61,7 +70,7 @@ export function processRoute(config: AppConfig): Router {
 
         try {
             const settings = { jarPath: config.jarPath, videosDir: config.videoDir, resultsDir: config.resultsDir };
-            const jobId = await startJob(config.store, settings, filename, targetColor, Number(threshold), config.run);
+            const jobId = await startJob(config.store, settings, filename, targetColor, thresholdValue, config.run);
 
             // 202 = "got it, working on it" (the JAR keeps running in the background)
             res.status(202).json({ jobId });
