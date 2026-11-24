@@ -27,14 +27,17 @@ async function startApp(t, javaOptions) {
     await once(server, 'listening');
     const baseUrl = `http://127.0.0.1:${server.address().port}`;
 
+    const postJson = (url, body) => fetch(baseUrl + url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+    });
     return {
+        videosDir,
         outputDir,
         get: (url) => fetch(baseUrl + url),
-        post: (url, body) => fetch(baseUrl + url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-        }),
+        post: (url, body) => postJson(url, JSON.stringify(body)),
+        postJson,
     };
 }
 
@@ -62,6 +65,43 @@ test('lists video files and validates both processing endpoints before launching
             assert.equal((await app.post(endpoint, { ...settings, videoFilename: missing })).status, 404);
         }
     }
+});
+
+test('rejects malformed JSON before launching Java', async (t) => {
+    const unexpectedJava = t.mock.fn();
+    const app = await startApp(t, { runPreview: unexpectedJava, spawnJob: unexpectedJava });
+
+    for (const endpoint of ['/api/preview', '/jobs']) {
+        const response = await app.postJson(endpoint, '{"videoFilename":');
+        assert.equal(response.status, 400);
+        assert.deepEqual(await response.json(), { error: 'Send a valid JSON request.' });
+    }
+    assert.equal(unexpectedJava.mock.callCount(), 0);
+});
+
+test('returns an empty video list when the videos directory is missing', async (t) => {
+    const unexpectedJava = t.mock.fn();
+    const app = await startApp(t, { runPreview: unexpectedJava, spawnJob: unexpectedJava });
+    await fs.rename(app.videosDir, `${app.videosDir}-offline`);
+
+    const response = await app.get('/api/videos');
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), []);
+    for (const endpoint of ['/api/preview', '/jobs']) {
+        assert.equal((await app.post(endpoint, settings)).status, 404);
+    }
+    assert.equal(unexpectedJava.mock.callCount(), 0);
+});
+
+test('reports a staging failure when the output directory cannot be created', async (t) => {
+    const spawnJob = t.mock.fn();
+    const app = await startApp(t, { spawnJob });
+    await fs.writeFile(app.outputDir, 'file blocking the output directory');
+
+    const response = await app.post('/jobs', settings);
+    assert.equal(response.status, 500);
+    assert.deepEqual(await response.json(), { error: 'The server could not complete the request.' });
+    assert.equal(spawnJob.mock.callCount(), 0);
 });
 
 test('serves two frame images from unique paths and parses Java coordinates, including no match', async (t) => {
@@ -130,7 +170,7 @@ function fakeChildProcess() {
     return child;
 }
 
-test('publishes a CSV only after the Java process succeeds', async (t) => {
+test('creates a missing output directory and publishes a CSV only after Java succeeds', async (t) => {
     const child = fakeChildProcess();
     let staged;
     const spawnJob = ([mode, jar, input, output, color, threshold]) => {
@@ -142,6 +182,7 @@ test('publishes a CSV only after the Java process succeeds', async (t) => {
         return child;
     };
     const app = await startApp(t, { spawnJob });
+    await assert.rejects(fs.stat(app.outputDir), { code: 'ENOENT' });
     const response = await app.post('/jobs', settings);
     assert.equal(response.status, 202);
     const { jobId } = await response.json();
@@ -153,6 +194,43 @@ test('publishes a CSV only after the Java process succeeds', async (t) => {
     child.emit('close', 0);
     const job = await waitForJob(app, jobId, 'completed');
     assert.equal(await (await app.get(job.downloadUrl)).text(), '0.0,15,22\n');
+});
+
+test('fails a job when Java exits successfully without a staged CSV', async (t) => {
+    const child = fakeChildProcess();
+    const app = await startApp(t, { spawnJob: () => child });
+    const response = await app.post('/jobs', settings);
+    assert.equal(response.status, 202);
+    const { jobId } = await response.json();
+
+    child.stderr.end();
+    child.emit('close', 0);
+    const job = await waitForJob(app, jobId, 'failed');
+    assert.match(job.error, /Video processing failed/);
+    assert.equal(job.downloadUrl, undefined);
+    assert.equal((await app.get(`/outputs/${jobId}_output.csv`)).status, 404);
+});
+
+test('does not publish a partial CSV when Java exits nonzero', async (t) => {
+    const child = fakeChildProcess();
+    let staged;
+    const app = await startApp(t, {
+        spawnJob: (args) => {
+            staged = args[3];
+            return child;
+        },
+    });
+    const response = await app.post('/jobs', settings);
+    assert.equal(response.status, 202);
+    const { jobId } = await response.json();
+    await fs.writeFile(staged, '0.0,15,22\n');
+
+    child.stderr.end();
+    child.emit('close', 1);
+    const job = await waitForJob(app, jobId, 'failed');
+    assert.match(job.error, /Video processing failed/);
+    assert.equal(job.downloadUrl, undefined);
+    assert.equal((await app.get(`/outputs/${jobId}_output.csv`)).status, 404);
 });
 
 test('rejects a partial CSV when the original Java code logs a failure but exits zero', async (t) => {
