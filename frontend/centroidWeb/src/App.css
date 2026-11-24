@@ -227,6 +227,18 @@
   width: 100%;
 }
 
+.frame-image img[hidden] {
+  display: none;
+}
+
+.live-mask {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
 .centroid-marker {
   position: absolute;
   transform: translate(-50%, -50%);
