@@ -1,3 +1,4 @@
+import { spawn as nodeSpawn } from 'child_process';
 import { access } from 'fs/promises';
 import { updateJob } from './jobStore.js';
 
@@ -20,13 +21,24 @@ import { updateJob } from './jobStore.js';
  *                                     Accepts the same arguments as spawn and must return a
  *                                     ChildProcess-like object with stderr, on('error'), on('exit')
  *                                     and unref(). Pass a fake here in tests to avoid needing Java.
+ * @returns {void} Returns as soon as the child is launched; the job record is updated later by the
+ *                 child's 'error' and 'exit' handlers.
+ * @throws If `spawnFn` throws synchronously. This is deliberately NOT async: the route calls
+ *         runJob inside its try/catch and relies on a synchronous failure turning into a 500
+ *         "Error starting job", exactly as it did when the spawn code lived in the route.
+ *         (An async function would turn the same failure into an unhandled promise rejection.)
  */
-export async function runJob({ jobId, jarPath, videoPath, outputPath, targetColor, threshold, spawnFn }) {
-  // Default to the real spawn so production callers don't have to pass it.
-  const spawn = spawnFn ?? (await import('child_process')).spawn;
-
+export function runJob({
+  jobId,
+  jarPath,
+  videoPath,
+  outputPath,
+  targetColor,
+  threshold,
+  spawnFn = nodeSpawn,
+}) {
   let stderrOutput = '';
-  const child = spawn(
+  const child = spawnFn(
     'java',
     ['-jar', jarPath, videoPath, outputPath, targetColor, threshold],
     { detached: true, stdio: ['ignore', 'ignore', 'pipe'] }
