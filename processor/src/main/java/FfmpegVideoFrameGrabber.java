@@ -1,8 +1,10 @@
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
+import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.NoSuchElementException;
 
 /**
@@ -15,6 +17,13 @@ import java.util.NoSuchElementException;
  *
  * One frame is read ahead of time so that hasNext() can report whether a frame is available
  * without consuming it.
+ *
+ * Error handling: JavaCV reports every decoding problem as a
+ * {@link FrameGrabber.Exception}, which is a subclass of {@link IOException}. Failures while
+ * opening the video surface from the constructor as an IOException. Failures while reading
+ * later frames surface from {@link #nextFrame()} as an {@link UncheckedIOException}, because
+ * the VideoFrameGrabber interface does not allow checked exceptions there. Callers can catch
+ * those two types to tell "could not open" apart from "broke while reading".
  */
 public class FfmpegVideoFrameGrabber implements VideoFrameGrabber, AutoCloseable {
     private final FFmpegFrameGrabber grabber;
@@ -25,7 +34,8 @@ public class FfmpegVideoFrameGrabber implements VideoFrameGrabber, AutoCloseable
      * Constructs a FfmpegVideoFrameGrabber that reads frames from the video at the given path.
      *
      * @param videoPath the path to the video file to decode
-     * @throws IOException if the video file cannot be opened or started
+     * @throws IOException if the video file cannot be opened or started, or its first frame
+     *         cannot be decoded (for example, the file is missing or is not a video)
      */
     public FfmpegVideoFrameGrabber(String videoPath) throws IOException {
         this.grabber = new FFmpegFrameGrabber(videoPath);
@@ -33,7 +43,14 @@ public class FfmpegVideoFrameGrabber implements VideoFrameGrabber, AutoCloseable
         try {
             this.grabber.start();
             this.lookaheadFrame = grabber.grabImage();
-        } catch (Exception e) {
+        } catch (FrameGrabber.Exception e) {
+            // The constructor failed, so the caller never gets an object to close().
+            // Release the native FFmpeg resources here so they don't leak.
+            try {
+                grabber.release();
+            } catch (FrameGrabber.Exception releaseFailure) {
+                e.addSuppressed(releaseFailure);
+            }
             throw new IOException("Failed to open video: " + videoPath, e);
         }
     }
@@ -53,7 +70,8 @@ public class FfmpegVideoFrameGrabber implements VideoFrameGrabber, AutoCloseable
      *
      * @return a FrameData containing the next frame's image and its timestamp
      * @throws NoSuchElementException if there is no next frame available
-     * @throws RuntimeException if the underlying grabber fails to read the following frame
+     * @throws UncheckedIOException if the underlying grabber fails to read the following frame
+     *         (the cause is the original {@link FrameGrabber.Exception})
      */
     @Override
     public FrameData nextFrame() {
@@ -67,8 +85,11 @@ public class FfmpegVideoFrameGrabber implements VideoFrameGrabber, AutoCloseable
 
         try {
             lookaheadFrame = grabber.grabImage();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to read next frame", e);
+        } catch (FrameGrabber.Exception e) {
+            // FrameGrabber.Exception is a checked IOException, but nextFrame() is defined by
+            // the VideoFrameGrabber interface without a throws clause, so wrap it in the
+            // standard unchecked wrapper for I/O failures.
+            throw new UncheckedIOException("Failed to read next frame", e);
         }
 
         return new FrameData(image, timestamp);
@@ -77,10 +98,10 @@ public class FfmpegVideoFrameGrabber implements VideoFrameGrabber, AutoCloseable
     /**
      * Stops the underlying FFmpeg grabber and releases its native resources.
      *
-     * @throws Exception if the grabber fails to stop cleanly
+     * @throws FrameGrabber.Exception if the grabber fails to stop cleanly
      */
     @Override
-    public void close() throws Exception {
+    public void close() throws FrameGrabber.Exception {
         grabber.stop();
     }
 }
