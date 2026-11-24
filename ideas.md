@@ -1,0 +1,2 @@
+- track you mouse pad and have it list the places clicked.
+- Track like algorithms like social media and what you like
