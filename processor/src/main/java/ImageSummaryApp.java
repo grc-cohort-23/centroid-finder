@@ -1,5 +1,7 @@
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 import javax.imageio.ImageIO;
@@ -45,12 +47,11 @@ public class ImageSummaryApp {
             return;
         }
         
-        BufferedImage inputImage = null;
+        BufferedImage inputImage;
         try {
-            inputImage = ImageIO.read(new File(inputImagePath));
-        } catch (Exception e) {
-            System.err.println("Error loading image: " + inputImagePath);
-            e.printStackTrace();
+            inputImage = loadImage(inputImagePath);
+        } catch (IOException e) {
+            System.err.println("Error loading image: " + inputImagePath + " (" + e.getMessage() + ")");
             return;
         }
         
@@ -75,7 +76,7 @@ public class ImageSummaryApp {
         try {
             ImageIO.write(binaryImage, "png", new File("binarized.png"));
             System.out.println("Binarized image saved as binarized.png");
-        } catch (Exception e) {
+        } catch (IOException e) {
             System.err.println("Error saving binarized image.");
             e.printStackTrace();
         }
@@ -94,9 +95,31 @@ public class ImageSummaryApp {
                 writer.println(group.toCsvRow());
             }
             System.out.println("Groups summary saved as groups.csv");
-        } catch (Exception e) {
+        } catch (FileNotFoundException e) {
+            // PrintWriter reports "can't create or open the file" as FileNotFoundException.
             System.err.println("Error writing groups.csv");
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Loads an image file into a BufferedImage.
+     *
+     * ImageIO.read has two ways of failing: it throws an IOException when the file can't be
+     * read at all (for example, it doesn't exist), but it quietly returns null when the file
+     * exists and no installed image reader understands it (an unsupported format or a corrupt
+     * file). The null case used to slip through and crash later with a NullPointerException
+     * inside the binarizer, so it is turned into an IOException with a clear message here.
+     *
+     * @param imagePath the path of the image file to load
+     * @return the decoded image, never null
+     * @throws IOException if the file can't be read, or isn't a supported or valid image
+     */
+    static BufferedImage loadImage(String imagePath) throws IOException {
+        BufferedImage image = ImageIO.read(new File(imagePath));
+        if (image == null) {
+            throw new IOException("Unsupported or corrupt image file: " + imagePath);
+        }
+        return image;
     }
 }
