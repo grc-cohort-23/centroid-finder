@@ -13,4 +13,10 @@ What could be added:
 -links to what we used (MUI) 
 
 Other ideas to add to the project: 
-show statistics about how often the target color ws detected
+- show statistics about how often the target color ws detected
+- Have a sections for "what problem did we occurs
+- Put number and percentage for accurate and transparent about what we achieve (not just talk)
+- Could point out our litmitation about the repo and what we learn from it
+- Deploy it
+- An architecture diagram
+- A test status badge
