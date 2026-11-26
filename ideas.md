@@ -1,0 +1,5 @@
+-Soccer game tracker, tracks soccer stats
+-Pool game tracker, tracks cue ball
+-airport tracker, tracks how many airlines at an airport?
+-tennis tracker
+-fish type tracker( think at an aquarium)

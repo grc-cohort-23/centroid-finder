@@ -1,66 +1,238 @@
-# centroid-finder
+# Centroid Finder
 
-## *DO THIS FIRST* Wave 0: AI Rules 
-AI is *NOT ALLOWED* for generating implementations of the classes.
-AI is allowed for helping you make test cases.
+Track an object (like a salamander) through a video. Pick a video, tune a target color and threshold while watching a live black-and-white preview of the first frame, then process the whole video. The result is a CSV with the position of the largest matching object in every frame.
 
-Don't have it just create the tests mindlessly for you though! Make sure you're actively involved in making the tests.
+![Preview page](docs/screenshots/preview.png)
 
-DO NOT MIX HUMAN AND AI COMMITS.
-EVERY COMMIT THAT USES AI MUST START WITH THE COMMIT MESSAGE "AI Used" AND IT MUST ONLY CREATE/ALTER TEST FILES
+The project has three parts:
 
-For this wave, please have each partner make a commit below with their username acknowledging that they understand the rules, according to the following format:
+| Folder | What it is |
+| --- | --- |
+| [`processor/`](processor/) | Java video processor. Reads every frame with JavaCV, binarizes it against the target color, finds connected groups with DFS, and writes `seconds,x,y` for the largest group's centroid (`-1,-1` when nothing matches). Builds to `videoprocessor.jar`. |
+| [`server/`](server/) | Spring Boot API (port 8080). Lists videos, serves thumbnails and video files, runs the processor as a background job, and saves job status in SQLite. |
+| [`centroid-webpage/`](centroid-webpage/) | React + TypeScript frontend (Vite). Video Chooser, live preview and tuning, job tracking, results and job history. |
 
-"I, YOUR_GITHUB_USERNAME, understand that AI is ONLY to be used for tests, and that every commit that I use AI for must start with 'AI Used'"
+The original single-image version (`ImageSummaryApp`) is in [`src/`](src/), with sample images in `sampleInput/` and `sampleOutput/`. The original course instructions are in [`docs/assignment-instructions.md`](docs/assignment-instructions.md).
 
-## Wave 1: Understand
-Read through ImageSummaryApp in detail with your partner. Understand what each part does. This will involve looking through and reading ALL of the other classes records and interfaces. This will take a long time, but it is worth it! Do not skimp on this part, you will regret it! Also look at the sampleInput and sampleOutput folders to understand what comes in and what goes out.
+## Frontend features
 
-As you read through the files, take notes in notes.md to help you and your partner understand. Make frequent commits to your notes.
+| Requirement | Where |
+| --- | --- |
+| **Video Chooser** at `/videos`: lists videos from `GET /api/videos`, each linking to its preview | [`pages/VideoChooser.tsx`](centroid-webpage/src/pages/VideoChooser.tsx) |
+| **Thumbnail preview** at `/preview/:filename`: first frame from `GET /api/thumbnail/{filename}`, side by side with a binarized version | [`pages/Preview.tsx`](centroid-webpage/src/pages/Preview.tsx), [`components/FramePreview.tsx`](centroid-webpage/src/components/FramePreview.tsx) |
+| **Live tuning**: a threshold slider and color picker that update the binarized image in real time, with a dot at the largest group's centroid | [`components/SettingsPanel.tsx`](centroid-webpage/src/components/SettingsPanel.tsx) |
+| **Java logic re-implemented in JavaScript** | [`lib/centroid.ts`](centroid-webpage/src/lib/centroid.ts) |
+| **"Process Video with These Settings"**: sends `POST /api/process/{filename}?targetColor=<hex>&threshold=<int>` | [`components/JobPanel.tsx`](centroid-webpage/src/components/JobPanel.tsx) |
+| **Job status**: checks `GET /api/process/{jobId}/status` every 2 seconds, then links to the CSV | [`hooks/useJobStatus.ts`](centroid-webpage/src/hooks/useJobStatus.ts) |
+| **Higher-order component**: `withData` handles fetching, loading, errors, retry and polling | [`hoc/withData.tsx`](centroid-webpage/src/hoc/withData.tsx) |
+| **Mock data** for working without the backend | [`mock/`](centroid-webpage/src/mock/) |
+| **Automated tests**: 97 frontend tests (Vitest + React Testing Library), plus JUnit tests for the processor and server | `*.test.ts(x)` files, [`processor/src/test/`](processor/src/test/java/), [`server/src/test/`](server/src/test/java/api/) |
 
-## Wave 2: Implement DfsBinaryGroupFinder
-This class takes in a binary image array and finds the connected groups. It will look very similar in many ways to the explorer problem you did for DFS! You'll need to understand the Group record to do this well.
+### Unique features
 
-Consider STARTING with the unit tests. Remember, you can use AI to help with the unit tests but NOT the implementation. Any AI commit must start with the message "AI Used"
+- **Results page with the tracked path drawn over the video** (`/jobs/:jobId`). The video plays with the whole path and the current centroid drawn on top. A chart of x and y over time marks the frames with no match; click it to jump the video to that moment. There's also a summary (frames, % tracked) and a CSV preview.
+- **Job history** (`/jobs`): every run saved in the server's SQLite database, with status filters. It refreshes itself while a job is still processing.
+- **Pick the color from the frame**: click the salamander in the first frame to use its exact color (the average of the 5×5 pixels under the cursor).
+- **Suggested colors**: the swatches are the most common distinct colors in the first frame.
+- **Hints**: the preview warns when nothing matches, when too much of the frame matches, or when there's a lot of noise.
+- **"Run again with new settings"**: opens the preview with a past job's settings already filled in.
 
-MAKE SURE YOU MAKE THOROUGH UNIT TESTS.
+## The Java logic in JavaScript
 
-## Wave 3: Implement EuclideanColorDistance
-Implement EuclideanColorDistance. You may consider adding a helper method for converting a hex int into R, G, and B components.
+[`centroid-webpage/src/lib/centroid.ts`](centroid-webpage/src/lib/centroid.ts) has one function per Java class in `processor/`:
 
-Again, consider starting with unit tests. You may consider using WolframAlpha to help you get correct expected values.
+| Java | JavaScript |
+| --- | --- |
+| `EuclideanColorDistance.distance` | `euclideanDistance` |
+| `DistanceImageBinarizer.toBinaryArray`: white when `threshold > distance` | `binarize` |
+| `DfsBinaryGroupFinder.findConnectedGroups`: iterative DFS, 4-connected, integer-average centroid | `findConnectedGroups` |
+| `Group.compareTo` (sorted largest first: size, then x, then y) | `compareGroupsDescending` |
+| `CentroidTracker.findLargestCentroid`: `(-1, -1)` when nothing matched | `findLargestCentroid` |
 
-MAKE SURE YOU MAKE THOROUGH UNIT TESTS.
+The only difference is the data shape: the browser gives pixels as one flat array (`index = y * width + x`) rather than `int[][]`. [`centroid.test.ts`](centroid-webpage/src/lib/centroid.test.ts) repeats the JUnit test cases with the same expected values.
 
-## Wave 4: Implement DistanceImageBinarizer
-To do this you will need to research `java.awt.image.BufferedImage`. In particular, make sure to understand `getRGB` and `setRGB`. When creating a new image, you can use the below to start the instance:
+As a check: for the sample video with target `660005` and threshold `67`, the browser preview puts the largest centroid at **(223, 419)**. That's exactly the first row of the CSV the Java processor wrote (`0.0,223,419`).
+
+## Setup
+
+You need:
+- Java 17 or newer and [Maven](https://maven.apache.org/), for the processor and server
+- [Node.js](https://nodejs.org/) 20 or newer, for the frontend
+- [Git Bash](https://git-scm.com/downloads) on Windows (the commands below are Git Bash / bash)
+
+```bash
+git clone https://github.com/SamuelM007/centroid-finder.git
+cd centroid-finder
+```
+
+### 1. Build the processor (once)
+
+```bash
+cd processor
+mvn package
+cd ..
+```
+
+This creates `processor/target/videoprocessor.jar`, which the server runs for each job.
+
+### 2. Start the server
+
+Videos go in `server/videos/`. `.mp4` files aren't in git, so copy the sample salamander video there yourself:
+
+```bash
+mkdir -p server/videos
+cp /path/to/ensantina.mp4 server/videos/
+```
+
+Then start the server. Run it from inside `server/`, because it finds `videos/`, `metadata/` and the processor jar relative to that folder:
+
+```bash
+cd server
+mvn spring-boot:run
+```
+
+It runs at http://localhost:8080. Job outputs are saved in `server/metadata/`, and job status in `server/jobs.db`.
+
+### 3. Start the frontend
+
+In a second Git Bash window:
+
+```bash
+cd centroid-webpage
+npm install
+npm run dev
+```
+
+Open http://localhost:5173. Vite forwards every `/api` request to `http://localhost:8080`. If the server runs somewhere else, set `BACKEND_URL`:
+
+```bash
+BACKEND_URL=http://localhost:8081 npm run dev
+```
+
+### Frontend without the server (mock data)
+
+```bash
+cd centroid-webpage
+npm run dev:mock
+```
+
+A "Mock data" badge shows in the header. The mock backend ([`src/mock/mockApi.ts`](centroid-webpage/src/mock/mockApi.ts)) keeps jobs in memory: a new job shows "processing" for 4 seconds, then finishes with a real CSV the processor produced for the sample video. To see the video play on the results page, copy the sample video to `centroid-webpage/public/mock/ensantina.mp4`.
+
+## Testing
+
+**Frontend**:
+
+```bash
+cd centroid-webpage
+npm test
+```
+
+The tests use [Vitest](https://vitest.dev/) and [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) in a simulated browser (jsdom). Network calls are replaced with a fake `fetch` ([`src/test/fetchMock.ts`](centroid-webpage/src/test/fetchMock.ts)), so the server doesn't need to be running.
+
+| Test file | Covers |
+| --- | --- |
+| `lib/centroid.test.ts` | The Java port: color distance, binarizing (strict `>`), connectivity, centroids, ordering, `(-1, -1)` |
+| `lib/csv.test.ts`, `lib/palette.test.ts`, `lib/format.test.ts` | CSV parsing, gaps and summary numbers, suggested colors, date and time formatting |
+| `lib/pixels.test.ts`, `lib/previewHint.test.ts`, `lib/settings.test.ts` | Color picking from the frame, the preview hints, reading settings from the URL |
+| `hoc/withData.test.tsx` | The HOC: loading, data, error + Retry, polling |
+| `pages/VideoChooser.test.tsx` | Video list, links to `/preview/...`, statuses, filtering, error state |
+| `components/SettingsPanel.test.tsx` | Slider, hex field, color picker, swatches |
+| `components/JobPanel.test.tsx` | The POST URL and settings, status polling, CSV link, failures |
+| `pages/Jobs.test.tsx` | Job table and status filters |
+| `pages/JobResults.test.tsx`, `components/JobStepper.test.tsx` | Results page: summary, CSV preview, links, processing / error / not found states, progress steps |
+| `App.test.tsx` | Routes: `/` → `/videos`, `/preview/:filename`, settings from the URL, 404 |
+| `mock/mockApi.test.ts` | The mock backend's job lifecycle |
+
+**Processor** (JUnit):
+
+```bash
+cd processor
+mvn test
+```
+
+**Server** (JUnit + Spring MockMvc):
+
+```bash
+cd server
+mvn test
+```
+
+The server tests call every API route, including the error cases (missing params, unknown files and job IDs, results that aren't ready). They use their own database (`target/test-jobs.db`) and create and delete their own test videos in `videos/`, so your real jobs and videos aren't touched.
+
+| Test file | Covers |
+| --- | --- |
+| `VideoControllerTest.java` | `/api/health`, `/api/videos`, `/api/video/{fileName}`, `/api/thumbnail/{fileName}`, unknown routes |
+| `JobControllerTest.java` | `/api/process/{fileName}`, `/api/process/{jobId}/status`, `/api/jobs`, `/api/jobs/{jobId}`, `/api/result/{jobId}` |
+
+Both the processor and server tests run on every pull request to `main` (see [`.github/workflows/run-tests.yml`](.github/workflows/run-tests.yml)).
+
+### Frontend scripts
+
+| Command (in `centroid-webpage/`) | What it does |
+| --- | --- |
+| `npm run dev` | Dev server using the real backend |
+| `npm run dev:mock` | Dev server using mock data |
+| `npm test` | Runs all tests once |
+| `npm run test:watch` | Re-runs tests as files change |
+| `npm run lint` | ESLint |
+| `npm run build` | Type-checks and builds to `dist/` |
+
+## API
+
+| Endpoint | Returns |
+| --- | --- |
+| `GET /api/health` | `Server is Running!` |
+| `GET /api/videos` | `["ensantina.mp4", ...]` |
+| `GET /api/thumbnail/{filename}` | First frame as a JPEG |
+| `GET /api/video/{filename}` | The video file (supports seeking) |
+| `POST /api/process/{filename}?targetColor=RRGGBB&threshold=N` | `202 {"jobId": "..."}` |
+| `GET /api/process/{jobId}/status` | `{"status": "processing" \| "done" \| "error", "result": "/api/result/{jobId}"}` |
+| `GET /api/result/{jobId}` | The CSV, `seconds,x,y` per frame |
+| `GET /api/jobs` | Every job, newest first: `id, fileName, targetColor, threshold, status, createdAt` |
+| `GET /api/jobs/{jobId}` | One job |
+
+## Project structure
 
 ```
-new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+processor/            Java video processor (JavaCV) -> videoprocessor.jar
+server/
+  src/main/java/api/  ApiApplication, JobController, VideoController, JobRepository (SQLite),
+                      InputValidator, ApiExceptionHandler
+  src/test/java/api/  MockMvc and validator tests
+  videos/             input videos (not in git)
+  metadata/           job output CSVs
+centroid-webpage/
+  src/
+    api/              types, the real API client, and the switch between real and mock
+    mock/             mock videos, jobs and a mock API
+    lib/              centroid.ts (Java port), plus plain helper functions: csv, drawing,
+                      pixels, palette, previewHint, settings, color, format
+    hoc/              withData higher-order component
+    hooks/            useJobStatus, useJob (poll a job), useTrackCsv (load a job's CSV)
+    components/       shared: Header, VideoCard, StatusPill, StatusFilter, ColorChip
+                      preview page: FramePreview, FrameStats, SettingsPanel, JobPanel
+                      results page: JobHeader, JobStepper, TrackedVideo, ResultSummary,
+                                    PositionChartCard, PositionChart, CsvPreview
+    pages/            VideoChooser, Preview, Jobs, JobResults
+  public/mock/        mock thumbnail and CSV
+docs/screenshots/     the screenshots below
+src/                  original single-image ImageSummaryApp
 ```
 
-Note that a lot of this class will be calling methods in BinaryGroupFinder and ColorDistanceFinder!
+## Screenshots
 
-MAKE SURE YOU MAKE THOROUGH UNIT TESTS. Consider asking the AI to teach you about mocks and fakes in unit testing and how they may be helpful here.
+**Video Chooser** (`/videos`)
 
-HINT: `getRGB` returns a 32-bit AARRGGBB color (includes alpha channel). However, ColorDistanceFinder expects the colors to come in RRGGBB format (no alpha channel (most significant 8 bits set to 0)). What can you do to make this conversion happen?
+![Video Chooser](docs/screenshots/videos.png)
 
-## Wave 5: Implement BinarizingImageGroupFinder
-This implementation will be relatively short! It will mostly be calling methods in ImageBinarizer and BinaryGroupFinder.
+**Preview and processing** (`/preview/ensantina.mp4`): the first frame, its binarized version with the centroid, and the settings
 
-MAKE SURE YOU MAKE THOROUGH UNIT TESTS. Consider asking the AI to teach you about mocks and fakes in unit testing and how they may be helpful here. I recommend NOT using any external library other than JUnit. If the AI wants to use another external library, consider asking it not to and to make stubs instead.
+![Preview page](docs/screenshots/preview.png)
 
-## Wave 6: Validation
-To validate your code is working, make sure you're in the centroid-finder directory and run the below command:
+**Results** (`/jobs/:jobId`): tracked path, position chart, summary and CSV preview
 
-```
-javac -cp lib/junit-platform-console-standalone-6.0.3.jar src/*.java && java -cp src ImageSummaryApp sampleInput/squares.jpg FFA200 164
-```
+![Results page](docs/screenshots/results.png)
 
-This will compile your files and run the main method in ImageSummaryApp against the sample image with a target color of orange and a threshold of 164. It should binarized.png and groups.csv which should match the corresponding files in the sampleOutput directory.
+**Job history** (`/jobs`)
 
-Once you have confirmed it is working, clean up your code, make sure it's committed and pushed, and make a PR to submit. Great job!
-
-## Optional Wave 7: Enhancements?
-If you want to, you can make a new branch to start experimenting. See if you can come up with a better color distance method (hint: look up perceptual color spaces). See if you can make your code more efficient or mor suited to spotting salamanders! Experiment with other test files. PLEASE MAKE SURE THIS IS IN A SEPARATE BRANCH FROM YOUR SUBMISSION.
-
+![Jobs page](docs/screenshots/jobs.png)
