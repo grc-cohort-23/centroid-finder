@@ -23,7 +23,8 @@ As an independent project, all files are stored locally in the runtime, any tele
 
 ---
 
-> A gif demonstrating our website changing threshold
+![Processing Preview](polishGif.gif)
+> `A gif demonstrating the frontend returning real time deliverables`
 
 ___
 
