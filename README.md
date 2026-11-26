@@ -1,66 +1,109 @@
 # centroid-finder
 
-## *DO THIS FIRST* Wave 0: AI Rules 
-AI is *NOT ALLOWED* for generating implementations of the classes.
-AI is allowed for helping you make test cases.
+Centroid Finder tracks colored objects in video. You give it a video, a target
+color and a threshold. It binarizes each frame (pixels close to the target color
+become 1, everything else 0), finds the connected groups of 1s, and reports the
+centroid of the largest group per frame. The original use case is tracking
+salamanders.
 
-Don't have it just create the tests mindlessly for you though! Make sure you're actively involved in making the tests.
+The project has three parts:
 
-DO NOT MIX HUMAN AND AI COMMITS.
-EVERY COMMIT THAT USES AI MUST START WITH THE COMMIT MESSAGE "AI Used" AND IT MUST ONLY CREATE/ALTER TEST FILES
+| Part | Folder / repo | What it does |
+| --- | --- | --- |
+| Processor | [`processor/`](processor/) | Java app that does the image and video analysis and packages into one runnable JAR. |
+| Server | [`server/`](server/) | Node.js (Express) API that stores uploaded videos, runs the JAR as a job, and serves results. |
+| Front end | `centroid-finder-frontend` (separate repo, **link: TODO**) | React app for uploading videos, previewing the mask and starting jobs. |
 
-For this wave, please have each partner make a commit below with their username acknowledging that they understand the rules, according to the following format:
+The web app needs the server **and** the front end running together.
 
-"I, YOUR_GITHUB_USERNAME, understand that AI is ONLY to be used for tests, and that every commit that I use AI for must start with 'AI Used'"
+## Prerequisites
 
-## Wave 1: Understand
-Read through ImageSummaryApp in detail with your partner. Understand what each part does. This will involve looking through and reading ALL of the other classes records and interfaces. This will take a long time, but it is worth it! Do not skimp on this part, you will regret it! Also look at the sampleInput and sampleOutput folders to understand what comes in and what goes out.
+- JDK 21 or newer (the processor compiles with `maven.compiler.release` 21)
+- Maven 3.x
+- Node.js and npm (for the server)
 
-As you read through the files, take notes in notes.md to help you and your partner understand. Make frequent commits to your notes.
+## Build the JAR
 
-## Wave 2: Implement DfsBinaryGroupFinder
-This class takes in a binary image array and finds the connected groups. It will look very similar in many ways to the explorer problem you did for DFS! You'll need to understand the Group record to do this well.
-
-Consider STARTING with the unit tests. Remember, you can use AI to help with the unit tests but NOT the implementation. Any AI commit must start with the message "AI Used"
-
-MAKE SURE YOU MAKE THOROUGH UNIT TESTS.
-
-## Wave 3: Implement EuclideanColorDistance
-Implement EuclideanColorDistance. You may consider adding a helper method for converting a hex int into R, G, and B components.
-
-Again, consider starting with unit tests. You may consider using WolframAlpha to help you get correct expected values.
-
-MAKE SURE YOU MAKE THOROUGH UNIT TESTS.
-
-## Wave 4: Implement DistanceImageBinarizer
-To do this you will need to research `java.awt.image.BufferedImage`. In particular, make sure to understand `getRGB` and `setRGB`. When creating a new image, you can use the below to start the instance:
+From the repo root:
 
 ```
-new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+cd processor
+mvn package
 ```
 
-Note that a lot of this class will be calling methods in BinaryGroupFinder and ColorDistanceFinder!
+This runs the tests and produces `processor/target/videoprocessor.jar`, a
+self-contained JAR (main class `VideoSummaryApp`). Use `mvn package -DskipTests`
+to skip the tests.
 
-MAKE SURE YOU MAKE THOROUGH UNIT TESTS. Consider asking the AI to teach you about mocks and fakes in unit testing and how they may be helpful here.
+## Configure the server
 
-HINT: `getRGB` returns a 32-bit AARRGGBB color (includes alpha channel). However, ColorDistanceFinder expects the colors to come in RRGGBB format (no alpha channel (most significant 8 bits set to 0)). What can you do to make this conversion happen?
+Create a `.env` file in the **repo root** (not inside `server/`). It is
+git-ignored. All variables are optional; paths are relative to the repo root.
 
-## Wave 5: Implement BinarizingImageGroupFinder
-This implementation will be relatively short! It will mostly be calling methods in ImageBinarizer and BinaryGroupFinder.
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `PORT` | `3000` | Port the server listens on. |
+| `VIDEO_DIR` | `videos` | Folder holding uploaded videos. |
+| `RESULTS_DIR` | `results` | Folder where job output is written. |
+| `JAR_PATH` | `processor/target/videoprocessor.jar` | The JAR built above. |
+| `DB_PATH` | `jobs.db` | SQLite file that tracks jobs. |
+| `MAX_UPLOAD_MB` | `500` | Largest video accepted on upload, in MB. |
 
-MAKE SURE YOU MAKE THOROUGH UNIT TESTS. Consider asking the AI to teach you about mocks and fakes in unit testing and how they may be helpful here. I recommend NOT using any external library other than JUnit. If the AI wants to use another external library, consider asking it not to and to make stubs instead.
-
-## Wave 6: Validation
-To validate your code is working, make sure you're in the centroid-finder directory and run the below command:
+Example `.env`:
 
 ```
-javac -cp lib/junit-platform-console-standalone-6.0.3.jar src/*.java && java -cp src ImageSummaryApp sampleInput/squares.jpg FFA200 164
+PORT=3000
+VIDEO_DIR=videos
+RESULTS_DIR=results
 ```
 
-This will compile your files and run the main method in ImageSummaryApp against the sample image with a target color of orange and a threshold of 164. It should binarized.png and groups.csv which should match the corresponding files in the sampleOutput directory.
+## Start the server
 
-Once you have confirmed it is working, clean up your code, make sure it's committed and pushed, and make a PR to submit. Great job!
+```
+cd server
+npm install
+npm start
+```
 
-## Optional Wave 7: Enhancements?
-If you want to, you can make a new branch to start experimenting. See if you can come up with a better color distance method (hint: look up perceptual color spaces). See if you can make your code more efficient or mor suited to spotting salamanders! Experiment with other test files. PLEASE MAKE SURE THIS IS IN A SEPARATE BRANCH FROM YOUR SUBMISSION.
+The server then listens on `http://localhost:3000` (or your `PORT`). Use
+`npm run dev` to restart automatically when files change. Make sure the JAR has
+been built first, since the server runs it for each job.
 
+Endpoints:
+
+- `GET /api/videos` lists uploaded videos
+- `POST /api/videos` uploads a video
+- `GET /thumbnail/:filename` returns a video's thumbnail
+- `POST /process/:filename` starts a processing job
+- `GET /process/:jobId/status` checks a job's status
+
+## Run the tests
+
+```
+# Processor (Java, JUnit)
+cd processor
+mvn test
+
+# Server (Node, Jest)
+cd server
+npm test
+```
+
+## Running the processor on its own
+
+You can also run the processor directly on an image, without the server. From
+`processor/`:
+
+```
+mvn package
+java -cp target/videoprocessor.jar ImageSummaryApp sampleInput/squares.jpg FFA200 164
+```
+
+This writes `binarized.png` and `groups.csv`, which should match the files in
+`processor/sampleOutput/`. The arguments are the input image, the target color
+as hex RGB, and the color-distance threshold.
+
+## Course notes
+
+This project began as a class assignment. The original assignment instructions
+and AI-use acknowledgements are kept in [ASSIGNMENT.md](ASSIGNMENT.md).
