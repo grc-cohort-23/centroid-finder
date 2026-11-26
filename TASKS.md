@@ -362,7 +362,7 @@ Every task: JSDoc on every exported function and every route handler (CLAUDE.md 
 
 ## Section 7: Decisions needed (same list in both repos)
 
-Each line has a **default**. An agent that reaches a task blocked by an open decision uses the default only if its human says so; otherwise it asks.
+**Mason made the executive call on 2026-11-25: this plan is approved and every default below is final** (Drew does not need to sign off). That includes D6: read the location tag from the file, show it and link to a map, never write tags into videos. An agent may change a decision only if its human says so.
 
 | # | Decision | Default if nobody objects | Blocks |
 |---|---|---|---|
