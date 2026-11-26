@@ -2,45 +2,6 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import { Alert } from '@mui/material'
 
 export function LiveMask({ sourceImage, settings, isUpdating }) {
-/**
- * Displays one video frame with an optional live-binarization canvas overlay
- * and an optional centroid marker.
- *
- * Live overlay: when both `originalUrl` and `liveSettings` are provided, the
- * original image is loaded into memory and thresholded on a canvas using
- * `liveSettings`. The canvas is visible only while `isUpdating` is true,
- * covering the stale server image until the new preview arrives. The original
- * image is requested with `crossOrigin="anonymous"`, so the server must send
- * CORS headers or `getImageData` will throw.
- *
- * Image states (internal):
- * - `loading` – initial; the image is requesting.
- * - `ready`   – image loaded; the centroid marker may render.
- * - `error`   – image failed; an error Alert replaces the frame.
- * Callers should change `key` (e.g. to the image URL) to reset these states.
- *
- * @param {Object} props
- * @param {string} props.title - Heading text; also used as the image `alt`.
- * @param {string} props.imageUrl - URL of the image to display.
- * @param {string} [props.originalUrl] - Source image for the live canvas. Omit to disable the overlay.
- * @param {ProcessingSettings} [props.liveSettings] - Settings for the live canvas (uses `hexColor` and `tolerance`).
- * @param {boolean} [props.isUpdating] - Show the live canvas over the image when true.
- * @param {number} props.width - Image width in pixels (used for layout and marker positioning).
- * @param {number} props.height - Image height in pixels.
- * @param {Centroid|null} [props.centroid] - Marker position in pixels; null/undefined hides the marker.
- * @returns {JSX.Element}
- */
-export default function VideoFrame({
-  title,
-  imageUrl,
-  originalUrl,
-  liveSettings,
-  isUpdating,
-  width,
-  height,
-  centroid,
-}) {
-  const [imageStatus, setImageStatus] = useState('loading')
   const canvasRef = useRef(null)
   const pixelsRef = useRef(null)
   const { hexColor, tolerance } = settings
@@ -85,6 +46,23 @@ export default function VideoFrame({
   return <canvas ref={canvasRef} className="live-mask" width={width} height={height} hidden={!isUpdating} aria-hidden="true" />
 }
 
+/**
+ * Displays one video frame with an optional live-binarization canvas overlay
+ * and an optional centroid marker.
+ *
+ * @param {Object} props
+ * @param {string} props.title - Heading text; also used as the image `alt`.
+ * @param {string} [props.imageUrl] - URL of the image to display.
+ * @param {string} [props.pendingImageUrl] - URL of the pending image preloading in the background.
+ * @param {(img: HTMLImageElement) => void} [props.onImageLoad] - Called when the primary image loads.
+ * @param {() => void} [props.onPendingLoad] - Called when the pending image finishes loading.
+ * @param {() => void} [props.onPendingError] - Called when the pending image fails to load.
+ * @param {number} props.width - Image width in pixels (used for layout and marker positioning).
+ * @param {number} props.height - Image height in pixels.
+ * @param {Centroid|null} [props.centroid] - Marker position in pixels; null/undefined hides the marker.
+ * @param {React.ReactNode} [props.children] - Children to render inside the frame-image container.
+ * @returns {JSX.Element}
+ */
 export default function VideoFrame({
   title,
   imageUrl,
@@ -120,11 +98,11 @@ export default function VideoFrame({
               hidden={url !== visibleUrl}
               onLoad={(event) => {
                 setLoadedUrl(url)
-                if (url === pendingImageUrl) onPendingLoad()
+                if (url === pendingImageUrl) onPendingLoad?.()
                 else onImageLoad?.(event.currentTarget)
               }}
               onError={() => {
-                if (url === pendingImageUrl) onPendingError()
+                if (url === pendingImageUrl) onPendingError?.()
                 else setFailedUrl(url)
               }}
             />
@@ -145,4 +123,3 @@ export default function VideoFrame({
     </section>
   )
 }
-

@@ -1,7 +1,9 @@
 package io.github.tonymythical.centroidFinder;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
+import org.jcodec.api.JCodecException;
 
 /**
  * Main entry point for the command-line video processor application.

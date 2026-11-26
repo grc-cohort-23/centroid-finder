@@ -32,12 +32,6 @@ import withRequestStatus from './withRequestStatus'
 
 const previewDelay = 300
 
-function PreviewFrames({ preview, displayed, pending, showMarker, settings, isUpdating, onPendingLoad, onPendingError }) {
-  const [sourceImage, setSourceImage] = useState(null)
-  const { previewUrl, width, height, centroid } = preview
-  // Keep the first decoded original frame as the source for all settings on this video.
-  const originalUrl = sourceImage?.getAttribute('src') ?? preview.originalUrl
-  const isCurrent = displayed?.settings === settings
 /**
  * Renders the original and binarized frames side by side plus a centroid
  * status line. Intended to be wrapped by {@link withRequestStatus}, which
@@ -46,12 +40,16 @@ function PreviewFrames({ preview, displayed, pending, showMarker, settings, isUp
  * @param {Object} props
  * @param {PreviewData} props.preview - Server preview response.
  * @param {boolean} props.showMarker - Whether to draw the centroid marker.
- * @param {ProcessingSettings} props.liveSettings - Current (possibly unsaved) settings, used for client-side re-rendering.
- * @param {boolean} props.isUpdating - True while `preview` is stale relative to `liveSettings`.
+ * @param {ProcessingSettings} props.settings - Current settings.
+ * @param {boolean} props.isUpdating - True while preview is stale relative to settings.
  * @returns {JSX.Element}
  */
-function PreviewFrames({ preview, showMarker, liveSettings, isUpdating }) {
-  const { originalUrl, previewUrl, width, height, centroid } = preview
+function PreviewFrames({ preview, displayed, pending, showMarker, settings, isUpdating, onPendingLoad, onPendingError }) {
+  const [sourceImage, setSourceImage] = useState(null)
+  const { previewUrl, width, height, centroid } = preview
+  // Keep the first decoded original frame as the source for all settings on this video.
+  const originalUrl = sourceImage?.getAttribute('src') ?? preview.originalUrl
+  const isCurrent = displayed?.settings === settings
   const hasCentroid = centroid.x >= 0 && centroid.y >= 0
   const frameProps = { width, height, centroid: isCurrent && showMarker && hasCentroid ? centroid : null }
 
@@ -71,8 +69,7 @@ function PreviewFrames({ preview, showMarker, liveSettings, isUpdating }) {
         </VideoFrame>
       </div>
       <p role="status">
-        {isUpdating && 'Updating preview…'}
-        {isCurrent && (hasCentroid ? `Centroid (${centroid.x}, ${centroid.y})` : 'No centroid found with these settings.')}
+        {hasCentroid ? `Centroid (${centroid.x}, ${centroid.y})` : 'No centroid found with these settings.'}
       </p>
     </>
   )
