@@ -3,6 +3,8 @@ package io.github.tonymythical.centroidFinder;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+
+import org.jcodec.api.JCodecException;
 import org.jcodec.api.JCodecException;
 
 /**
