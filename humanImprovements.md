@@ -1,0 +1,73 @@
+- Refactoring code
+    - What improvements can you make to the design/architecture of your code?
+        - Organize processor files in folders 
+    - How can you split up large methods or classes into smaller components?
+        -  
+    - Are there unused files/methods that can be removed?
+        - Process button has unused code
+        - Test routes are no longer necessary
+        - Print statements on back-end
+    - Where would additional Java interfaces be appropriate?
+        - 
+    - How can you make things simpler, more-usable, and easier to maintain?
+        - 
+    - Other refactoring improvements?
+        - 
+- adding tests
+    - What portions of your code are untested / only lightly tested?
+        - The Front-end has no testing
+    - Where would be the highest priority places to add new tests?
+        - Front-end
+    - Other testing improvements?
+        - Postman tests
+- improving error handling
+    - What parts of your code are brittle?
+        - Front-end groupfinder
+    - Where could you better be using exceptions?
+        - Front-end
+    - Where can you better add input validation to check invalid input?
+        - The front end will send bad information to the back-end, but if the back-end can't use it, the front-end shows that there was a problem.
+    - How can you better be resolving/logging/surfacing errors? Hint: almost any place you're using "throws Exception" or "catch(Exception e)" should likely be improved to pecify the specific types of exceptions that might be thrown or caught.
+        - The back-end processor has generic exception catches
+        - The front-end doesn't have specific exception catches
+    - Other error handling improvements?
+        - 
+- writing documentation
+    - What portions of your code are missing Javadoc/JSdoc for the methods/classes?
+        - Front-end missing documentation
+    - What documentation could be made clearer or improved?
+        - Processor has incorrect comments
+    - Are there sections of dead code that are commented out?
+        - Yes, the ProcessButton component
+    - Where would be the most important places to add documentation to make your code easier to read?
+        - The front-end GroupFinder / ColorDistanceFinder
+        - The PreviewPage
+    - Other documentation improvements?
+        - README.md
+- improving performance (optional)
+    - What parts of your code / tests run particularly slowly?
+        - Front-end GroupFinder
+    - What speed improvements would most make running / maintaining your code better?
+        - Changing the amount of frames checked in the VideoProcessor (or allowing the user to specify how much)
+    - Other performance improvements?
+        - 
+- hardening security (optional)
+    - What packages / images are out of date / have security issues?
+        - better-sqlite3 is unpredictable.
+    - Where could you have better input validation in your code to prevent malicious use?
+        - 
+    - Other security improvements?
+        - 
+- bug fixes (optional)
+    - What bugs do you know exist?
+        - Ladybugs
+        - Stickbugs
+        - Unaware of any code bugs
+    - What parts of the code do you think might be causing them?
+        - 
+    - Other bug fix improvements?
+        - 
+- other
+    - Any other improvements in general you could make?
+        - UI/UX improvements
+        - .gitignores in videos & results 
