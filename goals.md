@@ -9,3 +9,19 @@ Stretch: Some large deliverable you think you might be able to get done before t
 Impossible: Some ridiculously ambitious goal that would be cool but there's no way you can finish by the end of the quarter. This should be truly out there.
 
 You can use an AI to help you think about what might be easy/hard, but know that even the best frontier AIs these days are notoriously bad at estimating this.
+
+Easy:
+
+Time estimation
+
+Goal:
+
+Flag zone
+
+Stretch:
+
+Tracking hand positions
+
+Impossible:
+
+Familiar Face identification
