@@ -1,5 +1,11 @@
 # centroid-finder
 
+The React app lets you choose a video, compare the original and binarized first frames, and download a centroid report for the full video. Setup instructions, tests, and screenshots are available in the [web app README](frontend/centroidWeb/README.md).
+
+For endpoints, request settings, and job statuses, see the [server REST API reference](server/API.md).
+
+# Video Added
+
 ## *DO THIS FIRST* Wave 0: AI Rules 
 AI is *NOT ALLOWED* for generating implementations of the classes.
 AI is allowed for helping you make test cases.
@@ -64,3 +70,6 @@ Once you have confirmed it is working, clean up your code, make sure it's commit
 ## Optional Wave 7: Enhancements?
 If you want to, you can make a new branch to start experimenting. See if you can come up with a better color distance method (hint: look up perceptual color spaces). See if you can make your code more efficient or mor suited to spotting salamanders! Experiment with other test files. PLEASE MAKE SURE THIS IS IN A SEPARATE BRANCH FROM YOUR SUBMISSION.
 
+
+
+## Student Wave 0: 
