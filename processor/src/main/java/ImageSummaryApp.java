@@ -3,6 +3,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.List;
 import javax.imageio.ImageIO;
+import java.io.IOException;
 
 /**
  * The Image Summary Application.
@@ -45,15 +46,19 @@ public class ImageSummaryApp {
             return;
         }
         
-        BufferedImage inputImage = null;
+        BufferedImage inputImage;
         try {
             inputImage = ImageIO.read(new File(inputImagePath));
-        } catch (Exception e) {
+
+            if (inputImage == null) {
+                System.err.println("Unsupported or invalid image: " + inputImagePath);
+                return;
+            }
+        } catch (IOException e) {
             System.err.println("Error loading image: " + inputImagePath);
             e.printStackTrace();
             return;
         }
-        
         // Parse the target color from a hex string (format RRGGBB) into a 24-bit integer (0xRRGGBB)
         int targetColor = 0;
         try {
